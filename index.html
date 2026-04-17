@@ -58,6 +58,29 @@
   table.standings tr.classifies{background:rgba(212,175,55,0.04)}
   table.standings td.pts{font-weight:700;color:var(--gold)}
   .legend{margin-top:10px;color:var(--muted);font-size:12px;text-align:center}
+
+  .bracket{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px}
+  @media (max-width:640px){.bracket{grid-template-columns:1fr}}
+  .bracket-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:16px}
+  .bracket-card h4{font-family:'Bebas Neue',sans-serif;letter-spacing:3px;color:var(--gold);font-size:18px;margin-bottom:12px;text-align:center}
+  .bracket-team{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#0d0f12;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-weight:600}
+  .bracket-team .nm{font-size:14px}
+  .bracket-team .sc{font-family:'Bebas Neue',sans-serif;color:var(--gold);font-size:22px;min-width:32px;text-align:center}
+  .bracket-team.win{border-color:var(--gold)}
+  .bracket-team.lose .nm{color:var(--muted)}
+  .bracket-card .winner-line{margin-top:10px;text-align:center;color:var(--muted);font-size:12px}
+  .bracket-card .winner-line strong{color:var(--gold);font-size:14px;display:block;margin-top:4px}
+  .final-card{margin-top:18px;background:linear-gradient(135deg,#1c2026,#15181d);border:2px solid var(--gold);border-radius:16px;padding:20px;text-align:center;box-shadow:0 0 24px rgba(212,175,55,0.15)}
+  .final-card h4{font-family:'Bebas Neue',sans-serif;letter-spacing:6px;color:var(--gold);font-size:24px;margin-bottom:14px}
+  .final-teams{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px}
+  .final-teams .team-block{background:#0d0f12;border:1px solid var(--border);border-radius:10px;padding:14px}
+  .final-teams .team-block .nm{font-weight:700;font-size:16px}
+  .final-teams .team-block .sc{font-family:'Bebas Neue',sans-serif;color:var(--gold);font-size:38px;margin-top:4px}
+  .final-teams .team-block.champion{border-color:var(--gold);box-shadow:inset 0 0 16px rgba(212,175,55,0.15)}
+  .vs{font-family:'Bebas Neue',sans-serif;color:var(--gold);font-size:22px}
+  .champion-banner{margin-top:16px;padding:14px;background:linear-gradient(90deg,transparent,rgba(212,175,55,0.18),transparent);border-top:1px solid rgba(212,175,55,0.3);border-bottom:1px solid rgba(212,175,55,0.3)}
+  .champion-banner .label{color:var(--gold);font-family:'Bebas Neue',sans-serif;letter-spacing:4px;font-size:14px}
+  .champion-banner .name{font-size:22px;font-weight:700;margin-top:6px}
   .alert{background:rgba(226,86,86,0.08);border:1px solid rgba(226,86,86,0.3);border-radius:10px;padding:14px;margin:14px 0;color:#ffb3b3;font-size:14px}
   .alert.info{background:rgba(74,163,255,0.08);border-color:rgba(74,163,255,0.3);color:#aed4ff}
   footer{text-align:center;color:var(--muted);font-size:12px;padding:24px 16px;border-top:1px solid var(--border);margin-top:24px}
@@ -76,6 +99,7 @@
   <button class="active" data-tab="inicio">Inicio</button>
   <button data-tab="calendario">Calendario</button>
   <button data-tab="tabla">Tabla General</button>
+  <button data-tab="liguilla">Liguilla</button>
 </nav>
 
 <main>
@@ -112,6 +136,15 @@
     </div>
     <p class="legend">Zona de clasificación a semifinales (1° a 4°)</p>
   </section>
+
+
+  <section id="liguilla" class="tab-panel">
+    <h3 class="section-title">Semifinales</h3>
+    <div id="bracketContainer" class="bracket"></div>
+
+    <h3 class="section-title">Final</h3>
+    <div id="finalContainer"></div>
+  </section>
 </main>
 
 <footer>
@@ -123,9 +156,10 @@
 // CONFIGURACIÓN MÍNIMA
 const SHEET_ID = "1EBiMSjrKrqI0zCrbc3XDc901jVCcSO8EO9jfjk4bTiU";
 const PARTIDOS_GID = "402566664"; // pestaña Partidos
+const LIGUILLA_GID = ""; // opcional: si un día quieres usar gid exacto de la pestaña Liguilla
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${PARTIDOS_GID}`;
 
-let DATA = { partidos: [], equipos: [] };
+let DATA = { partidos: [], equipos: [], liguilla: { sf1:{gl:null,gv:null}, sf2:{gl:null,gv:null}, final:{gl:null,gv:null} } };
 
 function parseCSV(text){
   const rows = [];
@@ -156,6 +190,25 @@ async function fetchPartidos(){
     throw new Error('Google no entregó el CSV. Revisa que la hoja esté en "Archivo > Compartir > Publicar en la web".');
   }
   return parseCSV(text);
+}
+
+async function fetchLiguilla(){
+  const urls = [];
+  if(LIGUILLA_GID){
+    urls.push(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${LIGUILLA_GID}&_ts=${Date.now()}`);
+  }
+  urls.push(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Liguilla')}&_ts=${Date.now()}`);
+
+  for(const url of urls){
+    try{
+      const res = await fetch(url, { cache:'no-store' });
+      if(!res.ok) continue;
+      const text = await res.text();
+      if(!text || text.trim().startsWith('<')) continue;
+      return parseCSV(text);
+    }catch(e){}
+  }
+  return [];
 }
 
 function parseGoles(v){
@@ -200,6 +253,35 @@ function parsePartidos(rows){
       gv: parseGoles(r[cGV]),
       hora: (r[cH] || '').trim()
     });
+  }
+  return out;
+}
+
+function parseLiguilla(rows){
+  const out = { sf1:{gl:null,gv:null}, sf2:{gl:null,gv:null}, final:{gl:null,gv:null} };
+  if(!rows || !rows.length) return out;
+
+  let header = null, headerIdx = -1;
+  for(let i=0;i<rows.length;i++){
+    const cells = rows[i].map(c => (c || '').toLowerCase().trim());
+    if(cells.includes('etapa')){ header = cells; headerIdx = i; break; }
+  }
+  if(!header) return out;
+
+  const idx = matcher => header.findIndex(h => matcher(h));
+  const cE = idx(h => h === 'etapa');
+  const cGL = idx(h => h === 'goles local' || h === 'gl');
+  const cGV = idx(h => h === 'goles visitante' || h === 'gv');
+
+  for(let i=headerIdx+1;i<rows.length;i++){
+    const r = rows[i] || [];
+    const etapa = (r[cE] || '').toLowerCase().trim();
+    if(!etapa) continue;
+    const gl = parseGoles(r[cGL]);
+    const gv = parseGoles(r[cGV]);
+    if(etapa.includes('semifinal 1') || etapa.includes('sf1') || etapa === 'semi 1') out.sf1 = { gl, gv };
+    else if(etapa.includes('semifinal 2') || etapa.includes('sf2') || etapa === 'semi 2') out.sf2 = { gl, gv };
+    else if(etapa.includes('final')) out.final = { gl, gv };
   }
   return out;
 }
@@ -323,20 +405,119 @@ function renderTabla(){
   });
 }
 
+function ganador(local, visitante, gl, gv){
+  if(gl === null || gv === null) return null;
+  if(gl > gv) return local;
+  if(gv > gl) return visitante;
+  return 'empate';
+}
+
+function renderBracketCard(titulo, p, sub){
+  const div = document.createElement('div');
+  div.className = 'bracket-card';
+  const played = p.gl !== null && p.gv !== null;
+  const wL = played && p.gl > p.gv;
+  const wV = played && p.gv > p.gl;
+  const emp = played && p.gl === p.gv;
+  let statusLine = '<strong>Pendiente de jugar</strong>';
+  if(played && emp) statusLine = '<strong>Empate — se define por penales</strong>';
+  else if(played) statusLine = '<strong>Ganador: ' + escapeHtml(wL ? p.local : p.visitante) + '</strong>';
+
+  div.innerHTML = `
+    <h4>${titulo}</h4>
+    <div class="bracket-team ${wL?'win':''} ${played && !wL?'lose':''}">
+      <span class="nm">${escapeHtml(p.local)}</span>
+      <span class="sc">${played?p.gl:'–'}</span>
+    </div>
+    <div class="bracket-team ${wV?'win':''} ${played && !wV?'lose':''}">
+      <span class="nm">${escapeHtml(p.visitante)}</span>
+      <span class="sc">${played?p.gv:'–'}</span>
+    </div>
+    <div class="winner-line">${sub}${statusLine}</div>
+  `;
+  return div;
+}
+
+function renderFinalCard(localObj, visitObj, campeon){
+  const div = document.createElement('div');
+  div.className = 'final-card';
+  const played = localObj.goles !== null && visitObj.goles !== null;
+  const localWin = played && localObj.goles > visitObj.goles;
+  const visitWin = played && visitObj.goles > localObj.goles;
+  const empate = played && localObj.goles === visitObj.goles;
+
+  let campeonTxt = 'Por definir';
+  if(campeon && campeon !== 'empate') campeonTxt = campeon;
+  if(empate) campeonTxt = 'Empate — se define por penales';
+
+  div.innerHTML = `
+    <h4>🏆 GRAN FINAL</h4>
+    <div class="final-teams">
+      <div class="team-block ${localWin?'champion':''}">
+        <div class="nm">${escapeHtml(localObj.nombre)}</div>
+        <div class="sc">${played?localObj.goles:'–'}</div>
+      </div>
+      <div class="vs">VS</div>
+      <div class="team-block ${visitWin?'champion':''}">
+        <div class="nm">${escapeHtml(visitObj.nombre)}</div>
+        <div class="sc">${played?visitObj.goles:'–'}</div>
+      </div>
+    </div>
+    <div class="champion-banner">
+      <div class="label">CAMPEÓN CLAUSURA 2026</div>
+      <div class="name">${escapeHtml(campeonTxt)}</div>
+    </div>
+  `;
+  return div;
+}
+
+function renderLiguilla(){
+  const tabla = calcularTabla();
+  const cont = document.getElementById('bracketContainer');
+  const finalCont = document.getElementById('finalContainer');
+  cont.innerHTML = '';
+  finalCont.innerHTML = '';
+
+  if(tabla.length < 4){
+    cont.innerHTML = '<div class="alert info">Aún no hay suficientes equipos para definir las semifinales.</div>';
+    return;
+  }
+
+  const sf1 = { local: tabla[0].equipo, visitante: tabla[3].equipo, gl: DATA.liguilla.sf1?.gl ?? null, gv: DATA.liguilla.sf1?.gv ?? null };
+  const sf2 = { local: tabla[1].equipo, visitante: tabla[2].equipo, gl: DATA.liguilla.sf2?.gl ?? null, gv: DATA.liguilla.sf2?.gv ?? null };
+
+  cont.appendChild(renderBracketCard('Semifinal 1', sf1, '1° vs 4°'));
+  cont.appendChild(renderBracketCard('Semifinal 2', sf2, '2° vs 3°'));
+
+  const winSF1 = ganador(sf1.local, sf1.visitante, sf1.gl, sf1.gv);
+  const winSF2 = ganador(sf2.local, sf2.visitante, sf2.gl, sf2.gv);
+  const finalLocal = (winSF1 && winSF1 !== 'empate') ? winSF1 : 'Por definir';
+  const finalVisit = (winSF2 && winSF2 !== 'empate') ? winSF2 : 'Por definir';
+  const finalGL = DATA.liguilla.final?.gl ?? null;
+  const finalGV = DATA.liguilla.final?.gv ?? null;
+  const campeon = ganador(finalLocal, finalVisit, finalGL, finalGV);
+
+  finalCont.appendChild(renderFinalCard({ nombre: finalLocal, goles: finalGL }, { nombre: finalVisit, goles: finalGV }, campeon));
+}
+
 function mostrarError(msg){
   const html = `<div class="alert"><strong>No se pudieron cargar los datos.</strong><br>${escapeHtml(msg)}</div>`;
   document.getElementById('jornadasContainer').innerHTML = html;
   document.getElementById('standingsBody').innerHTML = `<tr><td colspan="10" style="padding:24px">${html}</td></tr>`;
   document.getElementById('updateInfo').textContent = 'Error de conexión con Google Sheets';
+  const bc = document.getElementById('bracketContainer'); if(bc) bc.innerHTML = html;
+  const fc = document.getElementById('finalContainer'); if(fc) fc.innerHTML = '';
 }
 
 async function cargarDatos(){
   try{
-    const rows = await fetchPartidos();
-    DATA.partidos = parsePartidos(rows);
+    const [rowsPartidos, rowsLiguilla] = await Promise.all([fetchPartidos(), fetchLiguilla()]);
+    DATA.partidos = parsePartidos(rowsPartidos);
     DATA.equipos = derivarEquipos(DATA.partidos);
+    DATA.liguilla = parseLiguilla(rowsLiguilla);
     renderCalendario();
     renderTabla();
+    renderLiguilla();
     document.getElementById('updateInfo').textContent =
       `Datos actualizados: ${new Date().toLocaleString('es-MX')} · Partidos cargados: ${DATA.partidos.length}`;
   }catch(err){
