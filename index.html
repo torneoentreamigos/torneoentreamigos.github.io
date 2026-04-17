@@ -158,6 +158,7 @@ const SHEET_ID = "1EBiMSjrKrqI0zCrbc3XDc901jVCcSO8EO9jfjk4bTiU";
 const PARTIDOS_GID = "402566664"; // pestaña Partidos
 const LIGUILLA_GID = "837279737"; // pestaña Liguilla
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${PARTIDOS_GID}`;
+const LIGUILLA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${LIGUILLA_GID}`;
 
 let DATA = { partidos: [], equipos: [], liguilla: { sf1:{gl:null,gv:null}, sf2:{gl:null,gv:null}, final:{gl:null,gv:null} } };
 
@@ -182,28 +183,37 @@ function parseCSV(text){
   return rows;
 }
 
-async function fetchPartidos(){
-  const res = await fetch(CSV_URL + '&_ts=' + Date.now(), { cache:'no-store' });
-  if(!res.ok) throw new Error('Google Sheets respondió HTTP ' + res.status);
-  const text = await res.text();
-  if(!text || text.trim().startsWith('<')){
-    throw new Error('Google no entregó el CSV. Revisa que la hoja esté en "Archivo > Compartir > Publicar en la web".');
+async function fetchCSV(urlBase, etiqueta){
+  const intentos = [
+    `${urlBase}&_ts=${Date.now()}`,
+    `${urlBase}&single=true&_ts=${Date.now()}`,
+    `${urlBase}&cachebust=${Math.random().toString(36).slice(2)}`
+  ];
+
+  let ultimoError = null;
+  for(const url of intentos){
+    try{
+      const res = await fetch(url, { cache:'no-store' });
+      if(!res.ok) throw new Error(`HTTP ${res.status}`);
+      const text = await res.text();
+      if(!text || text.trim().startsWith('<')) throw new Error('Google devolvió HTML en lugar de CSV');
+      return parseCSV(text);
+    }catch(err){
+      ultimoError = err;
+    }
   }
-  return parseCSV(text);
+  throw new Error(`No pude leer ${etiqueta}. ${ultimoError?.message || 'Error de conexión.'}`);
+}
+
+async function fetchPartidos(){
+  return fetchCSV(CSV_URL, 'la pestaña Partidos');
 }
 
 async function fetchLiguilla(){
   if(!LIGUILLA_GID || LIGUILLA_GID.includes('PEGA_AQUI')){
     throw new Error('Falta configurar el GID de la pestaña Liguilla en el archivo index.html');
   }
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${LIGUILLA_GID}&_ts=${Date.now()}`;
-  const res = await fetch(url, { cache:'no-store' });
-  if(!res.ok) throw new Error('No pude leer la pestaña Liguilla. Revisa que el GID sea correcto.');
-  const text = await res.text();
-  if(!text || text.trim().startsWith('<')){
-    throw new Error('Google no entregó el CSV de la pestaña Liguilla. Revisa el GID y que la hoja siga publicada en la web.');
-  }
-  return parseCSV(text);
+  return fetchCSV(LIGUILLA_URL, 'la pestaña Liguilla');
 }
 
 function parseGoles(v){
@@ -259,24 +269,43 @@ function parseLiguilla(rows){
   let header = null, headerIdx = -1;
   for(let i=0;i<rows.length;i++){
     const cells = rows[i].map(c => (c || '').toLowerCase().trim());
-    if(cells.includes('etapa')){ header = cells; headerIdx = i; break; }
+    const hasEtapa = cells.some(c => c === 'etapa' || c === 'fase' || c === 'partido' || c === 'cruce');
+    const hasGL = cells.some(c => c === 'goles local' || c === 'gl' || c === 'marcador local' || c === 'golesl');
+    const hasGV = cells.some(c => c === 'goles visitante' || c === 'gv' || c === 'marcador visitante' || c === 'golesv');
+    if(hasEtapa || (hasGL && hasGV)){
+      header = cells; headerIdx = i; break;
+    }
   }
-  if(!header) return out;
 
-  const idx = matcher => header.findIndex(h => matcher(h));
-  const cE = idx(h => h === 'etapa');
-  const cGL = idx(h => h === 'goles local' || h === 'gl');
-  const cGV = idx(h => h === 'goles visitante' || h === 'gv');
+  const normalize = s => String(s || '').toLowerCase().trim();
+  const buscarCol = (arr, opciones) => arr.findIndex(h => opciones.includes(normalize(h)));
+
+  let cE = 0, cGL = 1, cGV = 2;
+  if(header){
+    cE = buscarCol(header, ['etapa','fase','partido','cruce']);
+    cGL = buscarCol(header, ['goles local','gl','marcador local','golesl']);
+    cGV = buscarCol(header, ['goles visitante','gv','marcador visitante','golesv']);
+    if(cE === -1) cE = 0;
+    if(cGL === -1) cGL = 1;
+    if(cGV === -1) cGV = 2;
+  } else {
+    headerIdx = -1;
+  }
 
   for(let i=headerIdx+1;i<rows.length;i++){
     const r = rows[i] || [];
-    const etapa = (r[cE] || '').toLowerCase().trim();
+    const etapa = normalize(r[cE]);
     if(!etapa) continue;
     const gl = parseGoles(r[cGL]);
     const gv = parseGoles(r[cGV]);
-    if(etapa.includes('semifinal 1') || etapa.includes('sf1') || etapa === 'semi 1') out.sf1 = { gl, gv };
-    else if(etapa.includes('semifinal 2') || etapa.includes('sf2') || etapa === 'semi 2') out.sf2 = { gl, gv };
-    else if(etapa.includes('final')) out.final = { gl, gv };
+
+    const esSF1 = etapa.includes('semifinal 1') || etapa.includes('semi 1') || etapa.includes('sf1') || etapa.includes('semi1') || etapa.includes('1 vs 4') || etapa.includes('1v4');
+    const esSF2 = etapa.includes('semifinal 2') || etapa.includes('semi 2') || etapa.includes('sf2') || etapa.includes('semi2') || etapa.includes('2 vs 3') || etapa.includes('2v3');
+    const esFinal = etapa === 'final' || etapa.includes('gran final') || etapa.includes('final ');
+
+    if(esSF1) out.sf1 = { gl, gv };
+    else if(esSF2) out.sf2 = { gl, gv };
+    else if(esFinal) out.final = { gl, gv };
   }
   return out;
 }
@@ -510,19 +539,21 @@ async function cargarDatos(){
     DATA.partidos = parsePartidos(rowsPartidos);
     DATA.equipos = derivarEquipos(DATA.partidos);
 
+    let liguillaStatus = 'Liguilla conectada';
     try{
       const rowsLiguilla = await fetchLiguilla();
       DATA.liguilla = parseLiguilla(rowsLiguilla);
+      const encontroAlgo = [DATA.liguilla.sf1, DATA.liguilla.sf2, DATA.liguilla.final].some(x => x.gl !== null || x.gv !== null);
+      if(!encontroAlgo) liguillaStatus = 'Liguilla conectada, pero no reconocí aún los marcadores';
     }catch(errLiguilla){
       DATA.liguilla = { sf1:{gl:null,gv:null}, sf2:{gl:null,gv:null}, final:{gl:null,gv:null} };
+      liguillaStatus = 'Liguilla no leída: ' + (errLiguilla.message || 'error');
       console.warn(errLiguilla);
     }
     renderCalendario();
     renderTabla();
     renderLiguilla();
-    const liguillaConfigurada = LIGUILLA_GID && !LIGUILLA_GID.includes('PEGA_AQUI');
-    document.getElementById('updateInfo').textContent =
-      `Datos actualizados: ${new Date().toLocaleString('es-MX')} · Partidos cargados: ${DATA.partidos.length}${liguillaConfigurada ? ' · Liguilla conectada' : ' · Falta configurar GID de Liguilla'}`;
+    document.getElementById('updateInfo').textContent = `Datos actualizados: ${new Date().toLocaleString('es-MX')} · Partidos cargados: ${DATA.partidos.length} · ${liguillaStatus}`;
   }catch(err){
     console.error(err);
     mostrarError(err.message || 'Error desconocido');
