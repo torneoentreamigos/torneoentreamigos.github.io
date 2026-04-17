@@ -156,7 +156,7 @@
 // CONFIGURACIÓN MÍNIMA
 const SHEET_ID = "1EBiMSjrKrqI0zCrbc3XDc901jVCcSO8EO9jfjk4bTiU";
 const PARTIDOS_GID = "402566664"; // pestaña Partidos
-const LIGUILLA_GID = ""; // opcional: si un día quieres usar gid exacto de la pestaña Liguilla
+const LIGUILLA_GID = "PEGA_AQUI_EL_GID_DE_LIGUILLA"; // IMPORTANTE: pon aquí el gid real de la pestaña Liguilla
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${PARTIDOS_GID}`;
 
 let DATA = { partidos: [], equipos: [], liguilla: { sf1:{gl:null,gv:null}, sf2:{gl:null,gv:null}, final:{gl:null,gv:null} } };
@@ -193,22 +193,17 @@ async function fetchPartidos(){
 }
 
 async function fetchLiguilla(){
-  const urls = [];
-  if(LIGUILLA_GID){
-    urls.push(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${LIGUILLA_GID}&_ts=${Date.now()}`);
+  if(!LIGUILLA_GID || LIGUILLA_GID.includes('PEGA_AQUI')){
+    throw new Error('Falta configurar el GID de la pestaña Liguilla en el archivo index.html');
   }
-  urls.push(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Liguilla')}&_ts=${Date.now()}`);
-
-  for(const url of urls){
-    try{
-      const res = await fetch(url, { cache:'no-store' });
-      if(!res.ok) continue;
-      const text = await res.text();
-      if(!text || text.trim().startsWith('<')) continue;
-      return parseCSV(text);
-    }catch(e){}
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${LIGUILLA_GID}&_ts=${Date.now()}`;
+  const res = await fetch(url, { cache:'no-store' });
+  if(!res.ok) throw new Error('No pude leer la pestaña Liguilla. Revisa que el GID sea correcto.');
+  const text = await res.text();
+  if(!text || text.trim().startsWith('<')){
+    throw new Error('Google no entregó el CSV de la pestaña Liguilla. Revisa el GID y que la hoja siga publicada en la web.');
   }
-  return [];
+  return parseCSV(text);
 }
 
 function parseGoles(v){
@@ -511,15 +506,23 @@ function mostrarError(msg){
 
 async function cargarDatos(){
   try{
-    const [rowsPartidos, rowsLiguilla] = await Promise.all([fetchPartidos(), fetchLiguilla()]);
+    const rowsPartidos = await fetchPartidos();
     DATA.partidos = parsePartidos(rowsPartidos);
     DATA.equipos = derivarEquipos(DATA.partidos);
-    DATA.liguilla = parseLiguilla(rowsLiguilla);
+
+    try{
+      const rowsLiguilla = await fetchLiguilla();
+      DATA.liguilla = parseLiguilla(rowsLiguilla);
+    }catch(errLiguilla){
+      DATA.liguilla = { sf1:{gl:null,gv:null}, sf2:{gl:null,gv:null}, final:{gl:null,gv:null} };
+      console.warn(errLiguilla);
+    }
     renderCalendario();
     renderTabla();
     renderLiguilla();
+    const liguillaConfigurada = LIGUILLA_GID && !LIGUILLA_GID.includes('PEGA_AQUI');
     document.getElementById('updateInfo').textContent =
-      `Datos actualizados: ${new Date().toLocaleString('es-MX')} · Partidos cargados: ${DATA.partidos.length}`;
+      `Datos actualizados: ${new Date().toLocaleString('es-MX')} · Partidos cargados: ${DATA.partidos.length}${liguillaConfigurada ? ' · Liguilla conectada' : ' · Falta configurar GID de Liguilla'}`;
   }catch(err){
     console.error(err);
     mostrarError(err.message || 'Error desconocido');
