@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Monday Night Fut8 — Clausura 2026</title>
+<title>Torneo Entre Amigos — Clausura 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -359,9 +359,9 @@
 <!-- ================== HERO ================== -->
 <header class="hero">
   <div class="hero-tag">— SEGUNDA EDICIÓN —</div>
-  <h1>MONDAY NIGHT <span class="accent">FUT8</span></h1>
+  <h1>TORNEO ENTRE <span class="accent">AMIGOS</span></h1>
   <h2>CLAUSURA 2026</h2>
-  <p class="sub">Torneo de fútbol 8 · Lunes · Cancha Emiliano Zapata Norte</p>
+  <p class="sub">Monday Night Fut8 · Lunes · Cancha Emiliano Zapata Norte</p>
 </header>
 
 <!-- ================== NAV ================== -->
@@ -481,11 +481,11 @@
 //    el ID sería: 1A2B3C4D5E6F7G8H9I0J
 const SHEET_ID = "1EBiMSjrKrqI0zCrbc3XDc901jVCcSO8EO9jfjk4bTiU";
 
-// 2. (Opcional) Si renombraste las hojas dentro de Google Sheets,
-//    actualiza estos nombres. Por defecto deben llamarse así.
-const SHEET_EQUIPOS  = "Equipos";
-const SHEET_PARTIDOS = "Partidos";
-const SHEET_LIGUILLA = "Liguilla";
+// 2. (Opcional) Si renombraste las hojas dentro de Google Sheets, el código
+//    buscará automáticamente varios nombres posibles en este orden.
+const NOMBRES_EQUIPOS  = ["Equipos", "Teams"];
+const NOMBRES_PARTIDOS = ["Partidos", "Resultados", "Calendario", "Matches"];
+const NOMBRES_LIGUILLA = ["Liguilla", "Playoffs", "Semifinales"];
 
 /* ============================================================
    DE AQUÍ EN ADELANTE NO HACE FALTA TOCAR NADA
@@ -497,6 +497,7 @@ const csvUrl = (sheetName) =>
 
 // Estado en memoria
 let DATA = { equipos: [], partidos: [], liguilla: {} };
+let DEBUG_INFO = { errores: [], hojas_encontradas: [] };
 
 /* -------------------- CSV PARSER -------------------- */
 function parseCSV(text){
@@ -523,27 +524,53 @@ function parseCSV(text){
 /* -------------------- FETCH -------------------- */
 async function fetchSheet(name){
   const r = await fetch(csvUrl(name), {cache:'no-store'});
-  if(!r.ok) throw new Error('No se pudo cargar la hoja: ' + name);
-  return parseCSV(await r.text());
+  if(!r.ok) throw new Error('HTTP ' + r.status + ' en hoja "' + name + '"');
+  const text = await r.text();
+  // Google responde con HTML si el sheet no existe o no está compartido
+  if(text.trim().startsWith('<')) throw new Error('La hoja "' + name + '" no existe o no está compartida públicamente.');
+  return parseCSV(text);
+}
+
+// Intenta cargar una hoja probando varios nombres alternativos
+async function fetchSheetConAlternativas(nombres, tipo){
+  for(const n of nombres){
+    try {
+      const rows = await fetchSheet(n);
+      DEBUG_INFO.hojas_encontradas.push(`${tipo}: "${n}"`);
+      return { nombre: n, rows };
+    } catch(e){
+      // seguir intentando con el siguiente nombre
+    }
+  }
+  DEBUG_INFO.errores.push(`No se encontró ninguna hoja de ${tipo}. Probados: ${nombres.join(', ')}`);
+  return { nombre: null, rows: [] };
 }
 
 async function cargarDatos(){
+  DEBUG_INFO = { errores: [], hojas_encontradas: [] };
   if(!SHEET_ID || SHEET_ID.startsWith('PEGA_')){
     mostrarErrorConfig();
     return;
   }
   try{
-    const [eqRows, ptRows, liRows] = await Promise.all([
-      fetchSheet(SHEET_EQUIPOS),
-      fetchSheet(SHEET_PARTIDOS),
-      fetchSheet(SHEET_LIGUILLA).catch(()=>[]), // opcional
+    const [eq, pt, li] = await Promise.all([
+      fetchSheetConAlternativas(NOMBRES_EQUIPOS, 'equipos'),
+      fetchSheetConAlternativas(NOMBRES_PARTIDOS, 'partidos'),
+      fetchSheetConAlternativas(NOMBRES_LIGUILLA, 'liguilla'),
     ]);
-    DATA.equipos = parseEquipos(eqRows);
-    DATA.partidos = parsePartidos(ptRows);
-    DATA.liguilla = parseLiguilla(liRows);
+    DATA.equipos = parseEquipos(eq.rows);
+    DATA.partidos = parsePartidos(pt.rows);
+    DATA.liguilla = parseLiguilla(li.rows);
+
+    // Si no se encontró ninguna hoja válida, avisar
+    if(DATA.equipos.length === 0 && DATA.partidos.length === 0){
+      mostrarErrorDiagnostico();
+      return;
+    }
+
     renderAll();
-    document.getElementById('updateInfo').textContent =
-      'Datos actualizados: ' + new Date().toLocaleString('es-MX');
+    const info = `Datos actualizados: ${new Date().toLocaleString('es-MX')} · Hojas leídas: ${DEBUG_INFO.hojas_encontradas.join(', ') || 'ninguna'}`;
+    document.getElementById('updateInfo').textContent = info;
   } catch(err){
     console.error(err);
     mostrarError(err.message);
@@ -904,6 +931,31 @@ function mostrarError(msg){
       ${escapeHtml(msg)}<br>
       Verifica que tu Google Sheet esté compartido como
       "Cualquier persona con el enlace · Lector".
+    </div>`;
+  document.getElementById('jornadasContainer').innerHTML = html;
+  document.getElementById('standingsBody').innerHTML =
+    `<tr><td colspan="10" style="padding:24px">${html}</td></tr>`;
+  document.getElementById('bracketContainer').innerHTML = html;
+}
+
+function mostrarErrorDiagnostico(){
+  const errores = DEBUG_INFO.errores.map(e => `<li>${escapeHtml(e)}</li>`).join('');
+  const encontradas = DEBUG_INFO.hojas_encontradas.length
+    ? `<p style="margin-top:8px"><strong>Hojas encontradas:</strong> ${DEBUG_INFO.hojas_encontradas.map(escapeHtml).join(', ')}</p>`
+    : '';
+  const html = `
+    <div class="alert">
+      <strong>No se detectaron datos del torneo.</strong>
+      <p style="margin-top:8px">La página logró conectarse a tu Google Sheet, pero no encontró las pestañas con los datos.</p>
+      ${encontradas}
+      <p style="margin-top:8px"><strong>Revisa:</strong></p>
+      <ul style="margin-left:20px;margin-top:4px">
+        <li>Que la hoja tenga una pestaña llamada <strong>Equipos</strong> con los nombres de los equipos.</li>
+        <li>Que tenga una pestaña llamada <strong>Partidos</strong> (o Resultados / Calendario) con columnas: <strong>Jornada, Local, Goles Local, Visitante, Goles Visitante, Horario</strong>.</li>
+        <li>Que esté compartida como <strong>"Cualquier persona con el enlace · Lector"</strong>.</li>
+        <li>Que el ID copiado en <code>index.html</code> sea el correcto.</li>
+      </ul>
+      ${errores ? `<p style="margin-top:8px"><strong>Detalle técnico:</strong></p><ul style="margin-left:20px;margin-top:4px">${errores}</ul>` : ''}
     </div>`;
   document.getElementById('jornadasContainer').innerHTML = html;
   document.getElementById('standingsBody').innerHTML =
