@@ -266,47 +266,28 @@ function parseLiguilla(rows){
   const out = { sf1:{gl:null,gv:null}, sf2:{gl:null,gv:null}, final:{gl:null,gv:null} };
   if(!rows || !rows.length) return out;
 
-  let header = null, headerIdx = -1;
   for(let i=0;i<rows.length;i++){
-    const cells = rows[i].map(c => (c || '').toLowerCase().trim());
-    const hasEtapa = cells.some(c => c === 'etapa' || c === 'fase' || c === 'partido' || c === 'cruce');
-    const hasGL = cells.some(c => c === 'goles local' || c === 'gl' || c === 'marcador local' || c === 'golesl');
-    const hasGV = cells.some(c => c === 'goles visitante' || c === 'gv' || c === 'marcador visitante' || c === 'golesv');
-    if(hasEtapa || (hasGL && hasGV)){
-      header = cells; headerIdx = i; break;
+    const etapa = String((rows[i] && rows[i][0]) || '').toLowerCase().trim();
+    if(!etapa) continue;
+
+    const gl = parseGoles(rows[i][1]);
+    const gv = parseGoles(rows[i][2]);
+
+    if(etapa.includes('semifinal 1')){
+      out.sf1 = { gl, gv };
+      continue;
+    }
+
+    if(etapa.includes('semifinal 2')){
+      out.sf2 = { gl, gv };
+      continue;
+    }
+
+    if(etapa === 'final' || etapa.includes('gran final')){
+      out.final = { gl, gv };
     }
   }
 
-  const normalize = s => String(s || '').toLowerCase().trim();
-  const buscarCol = (arr, opciones) => arr.findIndex(h => opciones.includes(normalize(h)));
-
-  let cE = 0, cGL = 1, cGV = 2;
-  if(header){
-    cE = buscarCol(header, ['etapa','fase','partido','cruce']);
-    cGL = buscarCol(header, ['goles local','gl','marcador local','golesl']);
-    cGV = buscarCol(header, ['goles visitante','gv','marcador visitante','golesv']);
-    if(cE === -1) cE = 0;
-    if(cGL === -1) cGL = 1;
-    if(cGV === -1) cGV = 2;
-  } else {
-    headerIdx = -1;
-  }
-
-  for(let i=headerIdx+1;i<rows.length;i++){
-    const r = rows[i] || [];
-    const etapa = normalize(r[cE]);
-    if(!etapa) continue;
-    const gl = parseGoles(r[cGL]);
-    const gv = parseGoles(r[cGV]);
-
-    const esSF1 = etapa.includes('semifinal 1') || etapa.includes('semi 1') || etapa.includes('sf1') || etapa.includes('semi1') || etapa.includes('1 vs 4') || etapa.includes('1v4');
-    const esSF2 = etapa.includes('semifinal 2') || etapa.includes('semi 2') || etapa.includes('sf2') || etapa.includes('semi2') || etapa.includes('2 vs 3') || etapa.includes('2v3');
-    const esFinal = etapa === 'final' || etapa.includes('gran final') || etapa.includes('final ');
-
-    if(esSF1) out.sf1 = { gl, gv };
-    else if(esSF2) out.sf2 = { gl, gv };
-    else if(esFinal) out.final = { gl, gv };
-  }
   return out;
 }
 
@@ -571,7 +552,7 @@ document.querySelectorAll('#mainTabs button').forEach(btn => {
 });
 
 cargarDatos();
-setInterval(cargarDatos, 60 * 1000);
+setInterval(cargarDatos, 10 * 1000);
 </script>
 </body>
 </html>
