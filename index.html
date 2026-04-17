@@ -8,355 +8,63 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  /* ================== CONFIG VISUAL ================== */
   :root{
-    --bg:#0d0f12;
-    --bg-soft:#15181d;
-    --bg-card:#1c2026;
-    --border:#2a2f37;
-    --text:#eef0f4;
-    --muted:#9aa3b2;
-    --gold:#d4af37;
-    --gold-light:#f3d678;
-    --green:#3ec46d;
-    --red:#e25656;
-    --blue:#4aa3ff;
+    --bg:#0d0f12; --bg-soft:#15181d; --bg-card:#1c2026; --border:#2a2f37;
+    --text:#eef0f4; --muted:#9aa3b2; --gold:#d4af37;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;line-height:1.5}
   img{max-width:100%;display:block}
-
-  /* ================== HEADER ================== */
-  .hero{
-    position:relative;
-    background:linear-gradient(135deg, #0a0c0f 0%, #1a1f2a 100%);
-    border-bottom:2px solid var(--gold);
-    padding:30px 20px 24px;
-    text-align:center;
-    overflow:hidden;
-  }
-  .hero::before{
-    content:"";
-    position:absolute;inset:0;
-    background:radial-gradient(circle at 50% 0%, rgba(212,175,55,0.18), transparent 70%);
-    pointer-events:none;
-  }
+  .hero{position:relative;background:linear-gradient(135deg,#0a0c0f 0%,#1a1f2a 100%);border-bottom:2px solid var(--gold);padding:30px 20px 24px;text-align:center;overflow:hidden}
+  .hero::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 0%, rgba(212,175,55,0.18), transparent 70%);pointer-events:none}
   .hero-tag{font-family:'Bebas Neue',sans-serif;color:var(--gold);letter-spacing:6px;font-size:14px}
-  .hero h1{
-    font-family:'Bebas Neue',sans-serif;
-    font-size:clamp(36px, 8vw, 64px);
-    letter-spacing:2px;
-    line-height:1;
-    margin-top:6px;
-  }
-  .hero h1 .accent{color:var(--gold)}
-  .hero h2{
-    font-family:'Bebas Neue',sans-serif;
-    color:var(--gold);
-    letter-spacing:4px;
-    font-size:clamp(20px, 4vw, 28px);
-    margin-top:6px;
-  }
+  .hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(36px,8vw,64px);letter-spacing:2px;line-height:1;margin-top:6px}
+  .hero h1 .accent,.hero h2{color:var(--gold)}
+  .hero h2{font-family:'Bebas Neue',sans-serif;letter-spacing:4px;font-size:clamp(20px,4vw,28px);margin-top:6px}
   .hero p.sub{color:var(--muted);margin-top:8px;font-size:14px}
-
-  /* ================== NAV TABS ================== */
-  nav.tabs{
-    display:flex;
-    justify-content:center;
-    gap:4px;
-    background:var(--bg-soft);
-    border-bottom:1px solid var(--border);
-    padding:0 8px;
-    overflow-x:auto;
-    position:sticky;top:0;z-index:50;
-    -webkit-overflow-scrolling:touch;
-  }
-  nav.tabs button{
-    background:transparent;color:var(--muted);
-    border:0;padding:14px 16px;
-    font-family:inherit;font-size:14px;font-weight:600;
-    cursor:pointer;border-bottom:3px solid transparent;
-    white-space:nowrap;
-    transition:all .15s ease;
-  }
-  nav.tabs button:hover{color:var(--text)}
+  nav.tabs{display:flex;justify-content:center;gap:4px;background:var(--bg-soft);border-bottom:1px solid var(--border);padding:0 8px;overflow-x:auto;position:sticky;top:0;z-index:50}
+  nav.tabs button{background:transparent;color:var(--muted);border:0;padding:14px 16px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
   nav.tabs button.active{color:var(--gold);border-bottom-color:var(--gold)}
-
-  /* ================== MAIN ================== */
   main{max-width:1100px;margin:0 auto;padding:24px 16px 64px}
-  section.tab-panel{display:none;animation:fadeIn .25s ease}
-  section.tab-panel.active{display:block}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-
-  h3.section-title{
-    font-family:'Bebas Neue',sans-serif;
-    color:var(--gold);
-    letter-spacing:3px;
-    font-size:24px;
-    margin:24px 0 12px;
-    padding-bottom:8px;
-    border-bottom:1px solid var(--border);
-  }
-
-  /* ================== INICIO ================== */
-  .flyer-wrap{
-    text-align:center;
-    margin-bottom:24px;
-  }
-  .flyer-wrap img{
-    margin:0 auto;
-    max-width:520px;
-    width:100%;
-    border-radius:12px;
-    border:1px solid var(--border);
-    box-shadow:0 8px 28px rgba(0,0,0,0.5);
-  }
-  .info-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
-    gap:14px;
-    margin-top:20px;
-  }
-  .info-card{
-    background:var(--bg-card);
-    border:1px solid var(--border);
-    border-radius:12px;
-    padding:18px;
-  }
-  .info-card .label{
-    color:var(--gold);
-    font-family:'Bebas Neue',sans-serif;
-    letter-spacing:2px;
-    font-size:13px;
-    margin-bottom:6px;
-  }
+  section.tab-panel{display:none} section.tab-panel.active{display:block}
+  h3.section-title{font-family:'Bebas Neue',sans-serif;color:var(--gold);letter-spacing:3px;font-size:24px;margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+  .flyer-wrap{text-align:center;margin-bottom:24px}
+  .flyer-wrap img{margin:0 auto;max-width:520px;width:100%;border-radius:12px;border:1px solid var(--border);box-shadow:0 8px 28px rgba(0,0,0,.5)}
+  .info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:20px}
+  .info-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:18px}
+  .info-card .label{color:var(--gold);font-family:'Bebas Neue',sans-serif;letter-spacing:2px;font-size:13px;margin-bottom:6px}
   .info-card .value{font-size:18px;font-weight:600}
   .info-card .sub{color:var(--muted);font-size:13px;margin-top:4px}
-
-  /* ================== CALENDARIO ================== */
-  .jornada-tabs{
-    display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;
-  }
-  .jornada-tabs button{
-    background:var(--bg-card);
-    color:var(--muted);
-    border:1px solid var(--border);
-    padding:8px 14px;border-radius:999px;
-    font-family:inherit;font-weight:600;font-size:13px;
-    cursor:pointer;
-    transition:all .15s ease;
-  }
-  .jornada-tabs button:hover{color:var(--text);border-color:var(--gold)}
-  .jornada-tabs button.active{
-    background:var(--gold);color:#1b1b1b;border-color:var(--gold);
-  }
-  .jornada-block{display:none}
-  .jornada-block.active{display:block}
-
-  .match-card{
-    background:var(--bg-card);
-    border:1px solid var(--border);
-    border-radius:14px;
-    padding:14px 16px;
-    margin-bottom:10px;
-    display:grid;
-    grid-template-columns:1fr auto 1fr;
-    align-items:center;
-    gap:12px;
-    transition:border-color .15s ease;
-  }
+  .jornada-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+  .jornada-tabs button{background:var(--bg-card);color:var(--muted);border:1px solid var(--border);padding:8px 14px;border-radius:999px;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer}
+  .jornada-tabs button.active{background:var(--gold);color:#1b1b1b;border-color:var(--gold)}
+  .jornada-block{display:none}.jornada-block.active{display:block}
+  .match-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px}
   .match-card.played{border-color:rgba(212,175,55,0.35)}
-  .match-card .team{
-    display:flex;align-items:center;gap:10px;
-    font-weight:600;font-size:15px;
-  }
+  .match-card .team{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px}
   .match-card .team.right{justify-content:flex-end;text-align:right}
-  .match-card .team .badge{
-    width:28px;height:28px;border-radius:50%;
-    background:linear-gradient(135deg, #2a2f37, #15181d);
-    display:flex;align-items:center;justify-content:center;
-    font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--gold);
-    border:1px solid var(--border);flex-shrink:0;
-  }
-  .match-card .score{
-    display:flex;align-items:center;gap:8px;
-    font-family:'Bebas Neue',sans-serif;
-    font-size:28px;letter-spacing:1px;
-    color:var(--gold);
-    background:#0d0f12;
-    border:1px solid var(--border);
-    border-radius:8px;
-    padding:4px 12px;
-    min-width:90px;justify-content:center;
-  }
-  .match-card .score.pending{
-    color:var(--muted);font-size:14px;font-family:'Inter',sans-serif;
-    font-weight:600;letter-spacing:0;
-  }
-  .match-card .meta{
-    grid-column:1 / -1;
-    color:var(--muted);font-size:12px;text-align:center;
-    border-top:1px solid var(--border);padding-top:8px;margin-top:4px;
-  }
-  .winner{color:var(--gold)}
-  .loser{color:var(--muted)}
-
-  /* ================== TABLA GENERAL ================== */
-  .table-wrap{
-    background:var(--bg-card);
-    border:1px solid var(--border);
-    border-radius:14px;
-    overflow:hidden;
-    overflow-x:auto;
-  }
-  table.standings{
-    width:100%;border-collapse:collapse;font-size:14px;
-    min-width:560px;
-  }
-  table.standings thead th{
-    background:#0d0f12;
-    color:var(--gold);
-    font-family:'Bebas Neue',sans-serif;
-    letter-spacing:1px;
-    font-weight:400;font-size:14px;
-    padding:12px 8px;text-align:center;
-    border-bottom:1px solid var(--border);
-  }
+  .match-card .team .badge{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#2a2f37,#15181d);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--gold);border:1px solid var(--border);flex-shrink:0}
+  .match-card .score{display:flex;align-items:center;gap:8px;font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;color:var(--gold);background:#0d0f12;border:1px solid var(--border);border-radius:8px;padding:4px 12px;min-width:90px;justify-content:center}
+  .match-card .score.pending{color:var(--muted);font-size:14px;font-family:'Inter',sans-serif;font-weight:600;letter-spacing:0}
+  .match-card .meta{grid-column:1/-1;color:var(--muted);font-size:12px;text-align:center;border-top:1px solid var(--border);padding-top:8px;margin-top:4px}
+  .winner{color:var(--gold)} .loser{color:var(--muted)}
+  .table-wrap{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;overflow:hidden;overflow-x:auto}
+  table.standings{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
+  table.standings thead th{background:#0d0f12;color:var(--gold);font-family:'Bebas Neue',sans-serif;letter-spacing:1px;font-weight:400;font-size:14px;padding:12px 8px;text-align:center;border-bottom:1px solid var(--border)}
   table.standings thead th.team-col{text-align:left;padding-left:14px}
-  table.standings tbody td{
-    padding:10px 8px;text-align:center;
-    border-bottom:1px solid var(--border);
-  }
-  table.standings tbody tr:last-child td{border-bottom:0}
+  table.standings tbody td{padding:10px 8px;text-align:center;border-bottom:1px solid var(--border)}
   table.standings tbody td.team-col{text-align:left;padding-left:14px;font-weight:600}
-  table.standings tbody td.pos{
-    font-family:'Bebas Neue',sans-serif;color:var(--gold);font-size:18px;width:40px;
-  }
-  table.standings tr.classifies td.pos{
-    background:linear-gradient(90deg, rgba(212,175,55,0.15), transparent);
-  }
-  table.standings tr.classifies{
-    background:rgba(212,175,55,0.04);
-  }
-  table.standings td.pts{
-    font-weight:700;color:var(--gold);
-  }
-  .legend{
-    margin-top:10px;color:var(--muted);font-size:12px;text-align:center;
-  }
-  .legend .dot{
-    display:inline-block;width:10px;height:10px;border-radius:2px;
-    background:rgba(212,175,55,0.3);margin-right:6px;vertical-align:middle;
-  }
-
-  /* ================== LIGUILLA ================== */
-  .bracket{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:14px;
-    margin-top:8px;
-  }
-  @media (max-width:640px){
-    .bracket{grid-template-columns:1fr}
-  }
-  .bracket-card{
-    background:var(--bg-card);
-    border:1px solid var(--border);
-    border-radius:14px;padding:16px;
-  }
-  .bracket-card h4{
-    font-family:'Bebas Neue',sans-serif;
-    letter-spacing:3px;color:var(--gold);
-    font-size:18px;margin-bottom:12px;text-align:center;
-  }
-  .bracket-team{
-    display:flex;justify-content:space-between;align-items:center;
-    padding:10px 12px;background:#0d0f12;
-    border:1px solid var(--border);border-radius:8px;margin-bottom:6px;
-    font-weight:600;
-  }
-  .bracket-team .nm{font-size:14px}
-  .bracket-team .sc{
-    font-family:'Bebas Neue',sans-serif;color:var(--gold);font-size:22px;
-    min-width:32px;text-align:center;
-  }
-  .bracket-team.win{border-color:var(--gold)}
-  .bracket-team.lose .nm{color:var(--muted)}
-  .bracket-card .winner-line{
-    margin-top:10px;text-align:center;color:var(--muted);font-size:12px;
-  }
-  .bracket-card .winner-line strong{color:var(--gold);font-size:14px;display:block;margin-top:4px}
-
-  .final-card{
-    margin-top:18px;
-    background:linear-gradient(135deg, #1c2026, #15181d);
-    border:2px solid var(--gold);
-    border-radius:16px;padding:20px;text-align:center;
-    box-shadow:0 0 24px rgba(212,175,55,0.15);
-  }
-  .final-card h4{
-    font-family:'Bebas Neue',sans-serif;
-    letter-spacing:6px;color:var(--gold);font-size:24px;margin-bottom:14px;
-  }
-  .final-teams{
-    display:grid;grid-template-columns:1fr auto 1fr;
-    align-items:center;gap:12px;
-  }
-  .final-teams .team-block{
-    background:#0d0f12;border:1px solid var(--border);border-radius:10px;
-    padding:14px;
-  }
-  .final-teams .team-block .nm{font-weight:700;font-size:16px}
-  .final-teams .team-block .sc{
-    font-family:'Bebas Neue',sans-serif;color:var(--gold);font-size:38px;margin-top:4px;
-  }
-  .final-teams .team-block.champion{border-color:var(--gold);box-shadow:inset 0 0 16px rgba(212,175,55,0.15)}
-  .vs{font-family:'Bebas Neue',sans-serif;color:var(--gold);font-size:22px}
-
-  .champion-banner{
-    margin-top:16px;padding:14px;
-    background:linear-gradient(90deg, transparent, rgba(212,175,55,0.18), transparent);
-    border-top:1px solid rgba(212,175,55,0.3);
-    border-bottom:1px solid rgba(212,175,55,0.3);
-  }
-  .champion-banner .label{
-    color:var(--gold);font-family:'Bebas Neue',sans-serif;letter-spacing:4px;font-size:14px;
-  }
-  .champion-banner .name{
-    font-size:22px;font-weight:700;margin-top:6px;
-  }
-
-  /* ================== ALERTS ================== */
-  .alert{
-    background:rgba(226,86,86,0.08);
-    border:1px solid rgba(226,86,86,0.3);
-    border-radius:10px;padding:14px;margin:14px 0;
-    color:#ffb3b3;font-size:14px;
-  }
-  .alert.info{
-    background:rgba(74,163,255,0.08);
-    border-color:rgba(74,163,255,0.3);
-    color:#aed4ff;
-  }
-  .loading{text-align:center;color:var(--muted);padding:40px 0}
-
-  /* ================== FOOTER ================== */
-  footer{
-    text-align:center;color:var(--muted);font-size:12px;
-    padding:24px 16px;border-top:1px solid var(--border);
-    margin-top:24px;
-  }
-  footer .refresh{
-    background:transparent;border:1px solid var(--border);
-    color:var(--muted);padding:6px 14px;border-radius:999px;
-    font-family:inherit;font-size:12px;cursor:pointer;margin-top:8px;
-  }
-  footer .refresh:hover{color:var(--gold);border-color:var(--gold)}
+  table.standings tbody td.pos{font-family:'Bebas Neue',sans-serif;color:var(--gold);font-size:18px;width:40px}
+  table.standings tr.classifies{background:rgba(212,175,55,0.04)}
+  table.standings td.pts{font-weight:700;color:var(--gold)}
+  .legend{margin-top:10px;color:var(--muted);font-size:12px;text-align:center}
+  .alert{background:rgba(226,86,86,0.08);border:1px solid rgba(226,86,86,0.3);border-radius:10px;padding:14px;margin:14px 0;color:#ffb3b3;font-size:14px}
+  .alert.info{background:rgba(74,163,255,0.08);border-color:rgba(74,163,255,0.3);color:#aed4ff}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:24px 16px;border-top:1px solid var(--border);margin-top:24px}
+  footer .refresh{background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:999px;font-family:inherit;font-size:12px;cursor:pointer;margin-top:8px}
 </style>
 </head>
 <body>
-
-<!-- ================== HERO ================== -->
 <header class="hero">
   <div class="hero-tag">— SEGUNDA EDICIÓN —</div>
   <h1>TORNEO ENTRE <span class="accent">AMIGOS</span></h1>
@@ -364,140 +72,61 @@
   <p class="sub">Monday Night Fut8 · Lunes · Cancha Emiliano Zapata Norte</p>
 </header>
 
-<!-- ================== NAV ================== -->
 <nav class="tabs" id="mainTabs">
   <button class="active" data-tab="inicio">Inicio</button>
   <button data-tab="calendario">Calendario</button>
   <button data-tab="tabla">Tabla General</button>
-  <button data-tab="liguilla">Liguilla</button>
 </nav>
 
 <main>
-
-  <!-- ===== INICIO ===== -->
   <section id="inicio" class="tab-panel active">
-    <div class="flyer-wrap">
-      <img src="flyer.jpg" alt="Flyer del torneo" onerror="this.style.display='none'">
-    </div>
-
+    <div class="flyer-wrap"><img src="flyer.jpg" alt="Flyer del torneo" onerror="this.style.display='none'"></div>
     <h3 class="section-title">Información del torneo</h3>
     <div class="info-grid">
-      <div class="info-card">
-        <div class="label">📅 Día</div>
-        <div class="value">Lunes</div>
-        <div class="sub">7 jornadas + liguilla</div>
-      </div>
-      <div class="info-card">
-        <div class="label">🕗 Horarios</div>
-        <div class="value">8:00 PM · 9:00 PM</div>
-        <div class="sub">1 hora por partido</div>
-      </div>
-      <div class="info-card">
-        <div class="label">📍 Sede</div>
-        <div class="value">Cancha Emiliano Zapata Norte</div>
-        <div class="sub">Cancha de pasto · Fut 8</div>
-      </div>
-      <div class="info-card">
-        <div class="label">🏆 1er Lugar</div>
-        <div class="value">$3,000</div>
-      </div>
-      <div class="info-card">
-        <div class="label">🥈 2do Lugar</div>
-        <div class="value">$2,000</div>
-      </div>
-      <div class="info-card">
-        <div class="label">💰 Inscripción</div>
-        <div class="value">$1,000 MXN</div>
-        <div class="sub">por equipo</div>
-      </div>
-      <div class="info-card">
-        <div class="label">🏁 Arbitraje</div>
-        <div class="value">$250 MXN</div>
-        <div class="sub">por partido</div>
-      </div>
-      <div class="info-card">
-        <div class="label">👥 Cupo</div>
-        <div class="value">Limitado a 8 equipos</div>
-      </div>
+      <div class="info-card"><div class="label">📅 Día</div><div class="value">Lunes</div><div class="sub">7 jornadas</div></div>
+      <div class="info-card"><div class="label">🕗 Horarios</div><div class="value">8:00 PM · 9:00 PM</div><div class="sub">1 hora por partido</div></div>
+      <div class="info-card"><div class="label">📍 Sede</div><div class="value">Cancha Emiliano Zapata Norte</div><div class="sub">Cancha de pasto · Fut 8</div></div>
+      <div class="info-card"><div class="label">🏆 1er Lugar</div><div class="value">$3,000</div></div>
+      <div class="info-card"><div class="label">🥈 2do Lugar</div><div class="value">$2,000</div></div>
+      <div class="info-card"><div class="label">💰 Inscripción</div><div class="value">$1,000 MXN</div><div class="sub">por equipo</div></div>
+      <div class="info-card"><div class="label">🏁 Arbitraje</div><div class="value">$250 MXN</div><div class="sub">por partido</div></div>
+      <div class="info-card"><div class="label">👥 Cupo</div><div class="value">Limitado a 8 equipos</div></div>
     </div>
   </section>
 
-  <!-- ===== CALENDARIO / RESULTADOS ===== -->
   <section id="calendario" class="tab-panel">
     <h3 class="section-title">Calendario y resultados</h3>
     <div id="jornadaTabs" class="jornada-tabs"></div>
     <div id="jornadasContainer"></div>
   </section>
 
-  <!-- ===== TABLA GENERAL ===== -->
   <section id="tabla" class="tab-panel">
     <h3 class="section-title">Tabla general</h3>
     <div class="table-wrap">
       <table class="standings">
         <thead>
-          <tr>
-            <th>#</th>
-            <th class="team-col">Equipo</th>
-            <th>PJ</th>
-            <th>PG</th>
-            <th>PE</th>
-            <th>PP</th>
-            <th>GF</th>
-            <th>GC</th>
-            <th>DG</th>
-            <th>Pts</th>
-          </tr>
+          <tr><th>#</th><th class="team-col">Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th>Pts</th></tr>
         </thead>
         <tbody id="standingsBody"></tbody>
       </table>
     </div>
-    <p class="legend"><span class="dot"></span> Zona de clasificación a semifinales (1° a 4°)</p>
+    <p class="legend">Zona de clasificación a semifinales (1° a 4°)</p>
   </section>
-
-  <!-- ===== LIGUILLA ===== -->
-  <section id="liguilla" class="tab-panel">
-    <h3 class="section-title">Semifinales</h3>
-    <div id="bracketContainer" class="bracket"></div>
-
-    <h3 class="section-title">Final</h3>
-    <div id="finalContainer"></div>
-  </section>
-
 </main>
 
 <footer>
-  <div id="updateInfo">Datos sincronizados desde Google Sheets</div>
+  <div id="updateInfo">Conectando con Google Sheets…</div>
   <button class="refresh" onclick="cargarDatos()">⟳ Refrescar datos</button>
 </footer>
 
 <script>
-/* ============================================================
-   CONFIGURACIÓN — SOLO TIENES QUE CAMBIAR ESTAS LÍNEAS
-   ============================================================ */
-
-// 1. Pega aquí el ID de tu Google Sheet (es la parte larga en la URL,
-//    entre /d/ y /edit). Ejemplo de URL:
-//    https://docs.google.com/spreadsheets/d/1A2B3C4D5E6F7G8H9I0J/edit
-//    el ID sería: 1A2B3C4D5E6F7G8H9I0J
+// CONFIGURACIÓN MÍNIMA
 const SHEET_ID = "1EBiMSjrKrqI0zCrbc3XDc901jVCcSO8EO9jfjk4bTiU";
+const PARTIDOS_GID = "402566664"; // pestaña Partidos
+const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${PARTIDOS_GID}`;
 
-// 2. (Opcional) Si renombraste las hojas dentro de Google Sheets, el código
-//    buscará automáticamente varios nombres posibles en este orden.
-const NOMBRES_EQUIPOS  = ["Equipos", "Teams"];
-const NOMBRES_PARTIDOS = ["Partidos", "Resultados", "Calendario", "Matches"];
-const NOMBRES_LIGUILLA = ["Liguilla", "Playoffs", "Semifinales"];
+let DATA = { partidos: [], equipos: [] };
 
-/* ============================================================
-   DE AQUÍ EN ADELANTE NO HACE FALTA TOCAR NADA
-   ============================================================ */
-
-// URLs para descargar cada hoja como CSV.\n// Google a veces falla con /gviz/tq?tqx=out:csv aunque la hoja sea visible,\n// por eso probamos varios endpoints.\nconst csvUrls = (sheetName, gid=null) => {\n  const base = `https://docs.google.com/spreadsheets/d/${SHEET_ID}`;\n  const urls = [];\n\n  if (gid !== null && gid !== undefined && gid !== '') {\n    urls.push(`${base}/export?format=csv&gid=${encodeURIComponent(gid)}`);\n    urls.push(`${base}/gviz/tq?tqx=out:csv&gid=${encodeURIComponent(gid)}`);\n  }\n\n  urls.push(`${base}/export?format=csv&sheet=${encodeURIComponent(sheetName)}`);\n  urls.push(`${base}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`);\n  return urls;\n};\n\n// Si conoces los gid de las pestañas, ponlos aquí para hacerlo todavía más confiable.\n// Puedes verlos en la URL cuando entras a cada pestaña.\nconst SHEET_GIDS = {\n  equipos: '',\n  partidos: '',\n  liguilla: ''\n};
-
-// Estado en memoria
-let DATA = { equipos: [], partidos: [], liguilla: {} };
-let DEBUG_INFO = { errores: [], hojas_encontradas: [] };
-
-/* -------------------- CSV PARSER -------------------- */
 function parseCSV(text){
   const rows = [];
   let cur = [], val = '', inQuotes = false;
@@ -511,131 +140,22 @@ function parseCSV(text){
       if(ch === '"'){ inQuotes = true; }
       else if(ch === ','){ cur.push(val); val=''; }
       else if(ch === '\n'){ cur.push(val); rows.push(cur); cur=[]; val=''; }
-      else if(ch === '\r'){ /* skip */ }
+      else if(ch === '\r'){ }
       else val += ch;
     }
   }
-  if(val.length || cur.length) { cur.push(val); rows.push(cur); }
+  if(val.length || cur.length){ cur.push(val); rows.push(cur); }
   return rows;
 }
 
-/* -------------------- FETCH -------------------- */
-async function fetchSheet(name, gid=null){\n  let lastError = null;\n\n  for (const url of csvUrls(name, gid)) {\n    try {\n      const r = await fetch(url, { cache: 'no-store' });\n      if (!r.ok) throw new Error('HTTP ' + r.status);\n\n      const text = await r.text();\n      const trimmed = text.trim();\n\n      // Google a veces responde HTML de login/permiso en lugar del CSV.\n      if (!trimmed) throw new Error('respuesta vacía');\n      if (trimmed.startsWith('<!DOCTYPE html') || trimmed.startsWith('<html') || trimmed.startsWith('<')) {\n        throw new Error('Google devolvió HTML en vez de CSV');\n      }\n\n      const rows = parseCSV(text);\n      if (!rows.length) throw new Error('CSV vacío');\n      return rows;\n    } catch (e) {\n      lastError = e;\n    }\n  }\n\n  throw new Error(`No se pudo leer la hoja "${name}"${gid ? ` (gid ${gid})` : ''}: ${lastError?.message || 'error desconocido'}`);\n}
-
-// Intenta cargar una hoja probando varios nombres alternativos
-async function fetchSheetConAlternativas(nombres, tipo){\n  const gid = SHEET_GIDS[tipo] || null;\n\n  for(const n of nombres){\n    try {\n      const rows = await fetchSheet(n, gid);\n      DEBUG_INFO.hojas_encontradas.push(`${tipo}: "${n}"${gid ? ` (gid ${gid})` : ''}`);\n      return { nombre: n, rows };\n    } catch(e){\n      DEBUG_INFO.errores.push(`Intento fallido ${tipo} / ${n}: ${e.message}`);\n    }\n  }\n\n  DEBUG_INFO.errores.push(`No se encontró ninguna hoja de ${tipo}. Probados: ${nombres.join(', ')}`);\n  return { nombre: null, rows: [] };\n}
-
-async function cargarDatos(){
-  DEBUG_INFO = { errores: [], hojas_encontradas: [] };
-  if(!SHEET_ID || SHEET_ID.startsWith('PEGA_')){
-    mostrarErrorConfig();
-    return;
+async function fetchPartidos(){
+  const res = await fetch(CSV_URL + '&_ts=' + Date.now(), { cache:'no-store' });
+  if(!res.ok) throw new Error('Google Sheets respondió HTTP ' + res.status);
+  const text = await res.text();
+  if(!text || text.trim().startsWith('<')){
+    throw new Error('Google no entregó el CSV. Revisa que la hoja esté en "Archivo > Compartir > Publicar en la web".');
   }
-  try{
-    const [eq, pt, li] = await Promise.all([
-      fetchSheetConAlternativas(NOMBRES_EQUIPOS, 'equipos'),
-      fetchSheetConAlternativas(NOMBRES_PARTIDOS, 'partidos'),
-      fetchSheetConAlternativas(NOMBRES_LIGUILLA, 'liguilla'),
-    ]);
-    DATA.equipos = parseEquipos(eq.rows);
-    DATA.partidos = parsePartidos(pt.rows);
-    DATA.liguilla = parseLiguilla(li.rows);
-
-    // Si no se encontró ninguna hoja válida, avisar
-    if(DATA.equipos.length === 0 && DATA.partidos.length === 0){
-      mostrarErrorDiagnostico();
-      return;
-    }
-
-    renderAll();
-    const info = `Datos actualizados: ${new Date().toLocaleString('es-MX')} · Hojas leídas: ${DEBUG_INFO.hojas_encontradas.join(', ') || 'ninguna'}`;
-    document.getElementById('updateInfo').textContent = info;
-  } catch(err){
-    console.error(err);
-    mostrarError(err.message);
-  }
-}
-
-function parseEquipos(rows){
-  // Detecta automáticamente la fila con "Equipo" como encabezado
-  let startIdx = 0;
-  for(let i=0;i<rows.length;i++){
-    const c = (rows[i][0]||'').toLowerCase().trim();
-    if(c === 'equipo'){ startIdx = i+1; break; }
-  }
-  const out = [];
-  for(let i=startIdx;i<rows.length;i++){
-    const name = (rows[i][0]||'').trim();
-    if(name) out.push(name);
-  }
-  return out;
-}
-
-function parsePartidos(rows){
-  // Detecta cabecera y mapea columnas dinámicamente
-  let header = null, headerIdx = -1;
-  for(let i=0;i<rows.length;i++){
-    const cells = rows[i].map(c=>(c||'').toLowerCase().trim());
-    if(cells.includes('jornada') && cells.some(c=>c.includes('local')) && cells.some(c=>c.includes('visitante'))){
-      header = cells; headerIdx = i; break;
-    }
-  }
-  if(!header) return [];
-
-  const idx = (matcher) => header.findIndex(h => matcher(h));
-  const cJor   = idx(h => h === 'jornada');
-  const cLoc   = idx(h => h === 'local');
-  const cVis   = idx(h => h === 'visitante');
-  const cGL    = idx(h => h.startsWith('goles local') || h === 'gl');
-  const cGV    = idx(h => h.startsWith('goles visitante') || h === 'gv');
-  const cHora  = idx(h => h === 'horario' || h === 'hora');
-
-  const out = [];
-  for(let i=headerIdx+1;i<rows.length;i++){
-    const r = rows[i];
-    if(!r || !r[cJor]) continue;
-    const j = parseInt(r[cJor],10);
-    if(!Number.isFinite(j)) continue;
-    const local = (r[cLoc]||'').trim();
-    const visit = (r[cVis]||'').trim();
-    if(!local || !visit) continue;
-    const gl = parseGoles(r[cGL]);
-    const gv = parseGoles(r[cGV]);
-    const hora = (r[cHora]||'').trim();
-    out.push({jornada:j, local, visitante:visit, gl, gv, hora});
-  }
-  return out;
-}
-
-function parseLiguilla(rows){
-  // Busca la cabecera y extrae SF1, SF2, Final
-  const out = { sf1:{gl:null,gv:null}, sf2:{gl:null,gv:null}, final:{gl:null,gv:null} };
-  if(!rows || rows.length === 0) return out;
-  let headerIdx = -1;
-  for(let i=0;i<rows.length;i++){
-    const c = rows[i].map(v=>(v||'').toLowerCase().trim());
-    if(c.includes('etapa')){ headerIdx = i; break; }
-  }
-  if(headerIdx === -1) return out;
-  const header = rows[headerIdx].map(v=>(v||'').toLowerCase().trim());
-  const cEtapa = header.findIndex(h => h === 'etapa');
-  const cGL = header.findIndex(h => h.startsWith('goles local') || h === 'gl');
-  const cGV = header.findIndex(h => h.startsWith('goles visitante') || h === 'gv');
-  for(let i=headerIdx+1;i<rows.length;i++){
-    const r = rows[i];
-    if(!r) continue;
-    const et = (r[cEtapa]||'').toLowerCase().trim();
-    const gl = parseGoles(r[cGL]);
-    const gv = parseGoles(r[cGV]);
-    if(et.includes('semifinal 1') || et.includes('sf1') || et === 'semi 1'){
-      out.sf1 = {gl, gv};
-    } else if(et.includes('semifinal 2') || et.includes('sf2') || et === 'semi 2'){
-      out.sf2 = {gl, gv};
-    } else if(et.includes('final')){
-      out.final = {gl, gv};
-    }
-  }
-  return out;
+  return parseCSV(text);
 }
 
 function parseGoles(v){
@@ -646,16 +166,57 @@ function parseGoles(v){
   return Number.isFinite(n) ? n : null;
 }
 
-/* -------------------- CÁLCULO DE TABLA -------------------- */
+function parsePartidos(rows){
+  let header = null, headerIdx = -1;
+  for(let i=0;i<rows.length;i++){
+    const cells = rows[i].map(c => (c || '').toLowerCase().trim());
+    if(cells.includes('jornada') && cells.includes('local') && cells.includes('visitante')){
+      header = cells; headerIdx = i; break;
+    }
+  }
+  if(!header) throw new Error('No encontré los encabezados Jornada / Local / Visitante en la pestaña Partidos.');
+
+  const idx = matcher => header.findIndex(h => matcher(h));
+  const cJ = idx(h => h === 'jornada');
+  const cL = idx(h => h === 'local');
+  const cGL = idx(h => h === 'goles local' || h === 'gl');
+  const cV = idx(h => h === 'visitante');
+  const cGV = idx(h => h === 'goles visitante' || h === 'gv');
+  const cH = idx(h => h === 'horario' || h === 'hora');
+
+  const out = [];
+  for(let i=headerIdx+1;i<rows.length;i++){
+    const r = rows[i];
+    if(!r || !r[cJ]) continue;
+    const jornada = parseInt(r[cJ], 10);
+    const local = (r[cL] || '').trim();
+    const visitante = (r[cV] || '').trim();
+    if(!Number.isFinite(jornada) || !local || !visitante) continue;
+    out.push({
+      jornada,
+      local,
+      visitante,
+      gl: parseGoles(r[cGL]),
+      gv: parseGoles(r[cGV]),
+      hora: (r[cH] || '').trim()
+    });
+  }
+  return out;
+}
+
+function derivarEquipos(partidos){
+  const set = new Set();
+  partidos.forEach(p => { set.add(p.local); set.add(p.visitante); });
+  return Array.from(set).sort((a,b) => a.localeCompare(b, 'es'));
+}
+
 function calcularTabla(){
   const tabla = {};
-  DATA.equipos.forEach(e => {
-    tabla[e] = {equipo:e, pj:0, pg:0, pe:0, pp:0, gf:0, gc:0, dg:0, pts:0};
-  });
+  DATA.equipos.forEach(e => tabla[e] = {equipo:e,pj:0,pg:0,pe:0,pp:0,gf:0,gc:0,dg:0,pts:0});
   DATA.partidos.forEach(p => {
     if(p.gl === null || p.gv === null) return;
-    if(!tabla[p.local] || !tabla[p.visitante]) return;
     const L = tabla[p.local], V = tabla[p.visitante];
+    if(!L || !V) return;
     L.pj++; V.pj++;
     L.gf += p.gl; L.gc += p.gv;
     V.gf += p.gv; V.gc += p.gl;
@@ -663,74 +224,27 @@ function calcularTabla(){
     else if(p.gl < p.gv){ V.pg++; L.pp++; V.pts += 3; }
     else { L.pe++; V.pe++; L.pts++; V.pts++; }
   });
-  Object.values(tabla).forEach(t => t.dg = t.gf - t.gc);
-  // Orden: Pts, DG, GF, alfabético
-  return Object.values(tabla).sort((a,b) =>
-    b.pts - a.pts || b.dg - a.dg || b.gf - a.gf || a.equipo.localeCompare(b.equipo)
-  );
+  return Object.values(tabla)
+    .map(t => ({...t, dg: t.gf - t.gc}))
+    .sort((a,b) => b.pts - a.pts || b.dg - a.dg || b.gf - a.gf || a.equipo.localeCompare(b.equipo, 'es'));
 }
 
-/* -------------------- RENDER: CALENDARIO -------------------- */
-function renderCalendario(){
-  const jornadas = [...new Set(DATA.partidos.map(p=>p.jornada))].sort((a,b)=>a-b);
-  const tabsEl = document.getElementById('jornadaTabs');
-  const contEl = document.getElementById('jornadasContainer');
-  tabsEl.innerHTML = '';
-  contEl.innerHTML = '';
-
-  if(jornadas.length === 0){
-    contEl.innerHTML = '<div class="alert info">Aún no hay partidos cargados.</div>';
-    return;
-  }
-
-  // Determinar jornada activa: la última con resultados o la primera sin resultados
-  let activeJor = jornadas[0];
-  for(const j of jornadas){
-    const partidos = DATA.partidos.filter(p=>p.jornada===j);
-    const conResultado = partidos.filter(p=>p.gl!==null).length;
-    if(conResultado < partidos.length){ activeJor = j; break; }
-    activeJor = j;
-  }
-
-  jornadas.forEach(j => {
-    const btn = document.createElement('button');
-    btn.textContent = 'Jornada ' + j;
-    btn.dataset.jor = j;
-    if(j === activeJor) btn.classList.add('active');
-    btn.onclick = () => {
-      document.querySelectorAll('#jornadaTabs button').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      document.querySelectorAll('.jornada-block').forEach(b=>b.classList.remove('active'));
-      document.getElementById('jor-' + j).classList.add('active');
-    };
-    tabsEl.appendChild(btn);
-
-    const block = document.createElement('div');
-    block.className = 'jornada-block' + (j===activeJor?' active':'');
-    block.id = 'jor-' + j;
-    DATA.partidos.filter(p=>p.jornada===j).forEach(p => {
-      block.appendChild(renderMatchCard(p));
-    });
-    contEl.appendChild(block);
-  });
-}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function initials(name){ return name.split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
 
 function renderMatchCard(p){
   const card = document.createElement('div');
-  card.className = 'match-card';
   const played = p.gl !== null && p.gv !== null;
-  if(played) card.classList.add('played');
-
-  const localCls = played ? (p.gl>p.gv?'winner':(p.gl<p.gv?'loser':'')) : '';
-  const visitCls = played ? (p.gv>p.gl?'winner':(p.gv<p.gl?'loser':'')) : '';
-
+  card.className = 'match-card' + (played ? ' played' : '');
+  const localCls = played ? (p.gl > p.gv ? 'winner' : p.gl < p.gv ? 'loser' : '') : '';
+  const visitCls = played ? (p.gv > p.gl ? 'winner' : p.gv < p.gl ? 'loser' : '') : '';
   card.innerHTML = `
     <div class="team ${localCls}">
       <div class="badge">${initials(p.local)}</div>
       <div>${escapeHtml(p.local)}</div>
     </div>
-    <div class="score ${played?'':'pending'}">
-      ${ played ? `${p.gl} <span style="color:var(--muted)">–</span> ${p.gv}` : 'vs' }
+    <div class="score ${played ? '' : 'pending'}">
+      ${played ? `${p.gl} <span style="color:#9aa3b2">–</span> ${p.gv}` : 'vs'}
     </div>
     <div class="team right ${visitCls}">
       <div>${escapeHtml(p.visitante)}</div>
@@ -741,23 +255,60 @@ function renderMatchCard(p){
   return card;
 }
 
-function initials(name){
-  return name.split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
-}
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function renderCalendario(){
+  const tabsEl = document.getElementById('jornadaTabs');
+  const contEl = document.getElementById('jornadasContainer');
+  tabsEl.innerHTML = '';
+  contEl.innerHTML = '';
+
+  const jornadas = [...new Set(DATA.partidos.map(p => p.jornada))].sort((a,b) => a-b);
+  if(!jornadas.length){
+    contEl.innerHTML = '<div class="alert info">No encontré partidos en la pestaña Partidos.</div>';
+    return;
+  }
+
+  let activeJor = jornadas[0];
+  for(const j of jornadas){
+    const partidos = DATA.partidos.filter(p => p.jornada === j);
+    const conResultado = partidos.filter(p => p.gl !== null && p.gv !== null).length;
+    if(conResultado < partidos.length){ activeJor = j; break; }
+    activeJor = j;
+  }
+
+  jornadas.forEach(j => {
+    const btn = document.createElement('button');
+    btn.textContent = 'Jornada ' + j;
+    btn.dataset.jor = j;
+    if(j === activeJor) btn.classList.add('active');
+    btn.onclick = () => {
+      document.querySelectorAll('#jornadaTabs button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.jornada-block').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('jor-' + j).classList.add('active');
+    };
+    tabsEl.appendChild(btn);
+
+    const block = document.createElement('div');
+    block.className = 'jornada-block' + (j === activeJor ? ' active' : '');
+    block.id = 'jor-' + j;
+    DATA.partidos.filter(p => p.jornada === j).forEach(p => block.appendChild(renderMatchCard(p)));
+    contEl.appendChild(block);
+  });
 }
 
-/* -------------------- RENDER: TABLA GENERAL -------------------- */
 function renderTabla(){
-  const tabla = calcularTabla();
   const tbody = document.getElementById('standingsBody');
   tbody.innerHTML = '';
+  const tabla = calcularTabla();
+  if(!tabla.length){
+    tbody.innerHTML = `<tr><td colspan="10" style="padding:24px">No hay equipos para mostrar.</td></tr>`;
+    return;
+  }
   tabla.forEach((t, i) => {
     const tr = document.createElement('tr');
     if(i < 4) tr.classList.add('classifies');
     tr.innerHTML = `
-      <td class="pos">${i+1}</td>
+      <td class="pos">${i + 1}</td>
       <td class="team-col">${escapeHtml(t.equipo)}</td>
       <td>${t.pj}</td>
       <td>${t.pg}</td>
@@ -765,197 +316,47 @@ function renderTabla(){
       <td>${t.pp}</td>
       <td>${t.gf}</td>
       <td>${t.gc}</td>
-      <td>${t.dg>0?'+':''}${t.dg}</td>
+      <td>${t.dg > 0 ? '+' : ''}${t.dg}</td>
       <td class="pts">${t.pts}</td>
     `;
     tbody.appendChild(tr);
   });
 }
 
-/* -------------------- RENDER: LIGUILLA -------------------- */
-function ganador(local, visitante, gl, gv){
-  if(gl === null || gv === null) return null;
-  if(gl > gv) return local;
-  if(gv > gl) return visitante;
-  return 'empate';
-}
-
-function renderLiguilla(){
-  const tabla = calcularTabla();
-  const cont = document.getElementById('bracketContainer');
-  const finalCont = document.getElementById('finalContainer');
-  cont.innerHTML = '';
-  finalCont.innerHTML = '';
-
-  if(tabla.length < 4){
-    cont.innerHTML = '<div class="alert info">Aún no hay suficientes equipos para definir las semifinales.</div>';
-    return;
-  }
-
-  // Revisa si la fase regular terminó (opcional: basta con tener top 4 ordenado)
-  const sf1 = { local: tabla[0].equipo, visitante: tabla[3].equipo,
-                gl: DATA.liguilla.sf1?.gl ?? null, gv: DATA.liguilla.sf1?.gv ?? null };
-  const sf2 = { local: tabla[1].equipo, visitante: tabla[2].equipo,
-                gl: DATA.liguilla.sf2?.gl ?? null, gv: DATA.liguilla.sf2?.gv ?? null };
-
-  cont.appendChild(renderBracketCard('Semifinal 1', sf1, '1° vs 4°'));
-  cont.appendChild(renderBracketCard('Semifinal 2', sf2, '2° vs 3°'));
-
-  // Final
-  const winSF1 = ganador(sf1.local, sf1.visitante, sf1.gl, sf1.gv);
-  const winSF2 = ganador(sf2.local, sf2.visitante, sf2.gl, sf2.gv);
-  const finalLocal = (winSF1 && winSF1 !== 'empate') ? winSF1 : 'Por definir';
-  const finalVisit = (winSF2 && winSF2 !== 'empate') ? winSF2 : 'Por definir';
-  const finalGL = DATA.liguilla.final?.gl ?? null;
-  const finalGV = DATA.liguilla.final?.gv ?? null;
-  const campeon = ganador(finalLocal, finalVisit, finalGL, finalGV);
-
-  finalCont.appendChild(renderFinalCard(
-    {nombre:finalLocal, goles:finalGL},
-    {nombre:finalVisit, goles:finalGV},
-    campeon
-  ));
-}
-
-function renderBracketCard(titulo, p, sub){
-  const div = document.createElement('div');
-  div.className = 'bracket-card';
-  const played = p.gl !== null && p.gv !== null;
-  const wL = played && p.gl > p.gv;
-  const wV = played && p.gv > p.gl;
-  const emp = played && p.gl === p.gv;
-
-  let statusLine;
-  if(!played){
-    statusLine = '<strong>Pendiente de jugar</strong>';
-  } else if(emp){
-    statusLine = '<strong>Empate — se define por penales</strong>';
-  } else {
-    statusLine = '<strong>Ganador: ' + escapeHtml(wL ? p.local : p.visitante) + '</strong>';
-  }
-
-  div.innerHTML = `
-    <h4>${titulo}</h4>
-    <div class="bracket-team ${wL?'win':''} ${played && !wL?'lose':''}">
-      <span class="nm">${escapeHtml(p.local)}</span>
-      <span class="sc">${played?p.gl:'–'}</span>
-    </div>
-    <div class="bracket-team ${wV?'win':''} ${played && !wV?'lose':''}">
-      <span class="nm">${escapeHtml(p.visitante)}</span>
-      <span class="sc">${played?p.gv:'–'}</span>
-    </div>
-    <div class="winner-line">${sub}${statusLine}</div>
-  `;
-  return div;
-}
-
-function renderFinalCard(localObj, visitObj, campeon){
-  const div = document.createElement('div');
-  div.className = 'final-card';
-  const played = localObj.goles !== null && visitObj.goles !== null;
-  const localWin = played && localObj.goles > visitObj.goles;
-  const visitWin = played && visitObj.goles > localObj.goles;
-  const empate = played && localObj.goles === visitObj.goles;
-
-  let campeonTxt = 'Por definir';
-  if(campeon && campeon !== 'empate') campeonTxt = campeon;
-  if(empate) campeonTxt = 'Empate — se define por penales';
-
-  div.innerHTML = `
-    <h4>🏆 GRAN FINAL</h4>
-    <div class="final-teams">
-      <div class="team-block ${localWin?'champion':''}">
-        <div class="nm">${escapeHtml(localObj.nombre)}</div>
-        <div class="sc">${played?localObj.goles:'–'}</div>
-      </div>
-      <div class="vs">VS</div>
-      <div class="team-block ${visitWin?'champion':''}">
-        <div class="nm">${escapeHtml(visitObj.nombre)}</div>
-        <div class="sc">${played?visitObj.goles:'–'}</div>
-      </div>
-    </div>
-    <div class="champion-banner">
-      <div class="label">CAMPEÓN CLAUSURA 2026</div>
-      <div class="name">${escapeHtml(campeonTxt)}</div>
-    </div>
-  `;
-  return div;
-}
-
-/* -------------------- RENDER ALL -------------------- */
-function renderAll(){
-  renderCalendario();
-  renderTabla();
-  renderLiguilla();
-}
-
-/* -------------------- ALERTAS -------------------- */
-function mostrarErrorConfig(){
-  const html = `
-    <div class="alert">
-      <strong>⚙️ Configuración pendiente.</strong><br>
-      Falta pegar el ID de tu Google Sheet en el archivo <code>index.html</code>
-      (busca la línea <code>const SHEET_ID = "..."</code>).
-      Revisa la guía de instalación incluida.
-    </div>`;
-  document.getElementById('jornadasContainer').innerHTML = html;
-  document.getElementById('standingsBody').innerHTML =
-    `<tr><td colspan="10" style="padding:24px">${html}</td></tr>`;
-  document.getElementById('bracketContainer').innerHTML = html;
-}
 function mostrarError(msg){
-  const html = `
-    <div class="alert">
-      <strong>No se pudieron cargar los datos.</strong><br>
-      ${escapeHtml(msg)}<br>
-      Verifica que tu Google Sheet esté compartido como\n      "Cualquier persona con el enlace · Lector" y, si sigue fallando, publícalo también en la web desde Archivo → Compartir → Publicar en la web.
-    </div>`;
+  const html = `<div class="alert"><strong>No se pudieron cargar los datos.</strong><br>${escapeHtml(msg)}</div>`;
   document.getElementById('jornadasContainer').innerHTML = html;
-  document.getElementById('standingsBody').innerHTML =
-    `<tr><td colspan="10" style="padding:24px">${html}</td></tr>`;
-  document.getElementById('bracketContainer').innerHTML = html;
+  document.getElementById('standingsBody').innerHTML = `<tr><td colspan="10" style="padding:24px">${html}</td></tr>`;
+  document.getElementById('updateInfo').textContent = 'Error de conexión con Google Sheets';
 }
 
-function mostrarErrorDiagnostico(){
-  const errores = DEBUG_INFO.errores.map(e => `<li>${escapeHtml(e)}</li>`).join('');
-  const encontradas = DEBUG_INFO.hojas_encontradas.length
-    ? `<p style="margin-top:8px"><strong>Hojas encontradas:</strong> ${DEBUG_INFO.hojas_encontradas.map(escapeHtml).join(', ')}</p>`
-    : '';
-  const html = `
-    <div class="alert">
-      <strong>No se detectaron datos del torneo.</strong>
-      <p style="margin-top:8px">La página logró conectarse a tu Google Sheet, pero no encontró las pestañas con los datos.</p>
-      ${encontradas}
-      <p style="margin-top:8px"><strong>Revisa:</strong></p>
-      <ul style="margin-left:20px;margin-top:4px">
-        <li>Que la hoja tenga una pestaña llamada <strong>Equipos</strong> con los nombres de los equipos.</li>
-        <li>Que tenga una pestaña llamada <strong>Partidos</strong> (o Resultados / Calendario) con columnas: <strong>Jornada, Local, Goles Local, Visitante, Goles Visitante, Horario</strong>.</li>
-        <li>Que esté compartida como <strong>"Cualquier persona con el enlace · Lector"</strong>.</li>\n        <li>Si Google sigue bloqueando el CSV, publícala también en <strong>Archivo → Compartir → Publicar en la web</strong>.</li>\n        <li>De preferencia captura también los <strong>gid</strong> de las pestañas y pégalos en <code>SHEET_GIDS</code>.</li>
-        <li>Que el ID copiado en <code>index.html</code> sea el correcto.</li>
-      </ul>
-      ${errores ? `<p style="margin-top:8px"><strong>Detalle técnico:</strong></p><ul style="margin-left:20px;margin-top:4px">${errores}</ul>` : ''}
-    </div>`;
-  document.getElementById('jornadasContainer').innerHTML = html;
-  document.getElementById('standingsBody').innerHTML =
-    `<tr><td colspan="10" style="padding:24px">${html}</td></tr>`;
-  document.getElementById('bracketContainer').innerHTML = html;
+async function cargarDatos(){
+  try{
+    const rows = await fetchPartidos();
+    DATA.partidos = parsePartidos(rows);
+    DATA.equipos = derivarEquipos(DATA.partidos);
+    renderCalendario();
+    renderTabla();
+    document.getElementById('updateInfo').textContent =
+      `Datos actualizados: ${new Date().toLocaleString('es-MX')} · Partidos cargados: ${DATA.partidos.length}`;
+  }catch(err){
+    console.error(err);
+    mostrarError(err.message || 'Error desconocido');
+  }
 }
 
-/* -------------------- TABS PRINCIPALES -------------------- */
 document.querySelectorAll('#mainTabs button').forEach(btn => {
   btn.onclick = () => {
-    document.querySelectorAll('#mainTabs button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('#mainTabs button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
-    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
     document.getElementById(btn.dataset.tab).classList.add('active');
-    window.scrollTo({top:0, behavior:'smooth'});
+    window.scrollTo({top:0,behavior:'smooth'});
   };
 });
 
-/* -------------------- INIT -------------------- */
 cargarDatos();
-// Refrescar automáticamente cada 5 minutos
-setInterval(cargarDatos, 5 * 60 * 1000);
+setInterval(cargarDatos, 60 * 1000);
 </script>
 </body>
 </html>
