@@ -218,9 +218,9 @@ async function fetchLiguilla(){
 
 function parseGoles(v){
   if(v === undefined || v === null) return null;
-  const s = String(v).trim();
+  const s = String(v).replace(/\u00A0/g, ' ').trim();
   if(s === '') return null;
-  const n = parseInt(s,10);
+  const n = Number(s);
   return Number.isFinite(n) ? n : null;
 }
 
@@ -272,42 +272,98 @@ function normalizarTexto(s){
 }
 
 function parseLiguilla(rows){
-  const out = { sf1:{gl:null,gv:null}, sf2:{gl:null,gv:null}, final:{gl:null,gv:null} };
+  const out = {
+    sf1: { gl: null, gv: null },
+    sf2: { gl: null, gv: null },
+    final: { gl: null, gv: null }
+  };
+
   if(!rows || !rows.length) return out;
 
-  // 1) Ruta directa para tu hoja actual: A4:C6
-  //    Fila 4 = Semifinal 1, fila 5 = Semifinal 2, fila 6 = Final
-  const r4 = rows[3] || [];
-  const r5 = rows[4] || [];
-  const r6 = rows[5] || [];
+  let header = null;
+  let headerIdx = -1;
 
-  const t4 = normalizarTexto(r4[0]);
-  const t5 = normalizarTexto(r5[0]);
-  const t6 = normalizarTexto(r6[0]);
+  for(let i = 0; i < rows.length; i++){
+    const cells = (rows[i] || []).map(c => normalizarTexto(c));
+    if(
+      cells.includes('etapa') &&
+      cells.includes('goles local') &&
+      cells.includes('goles visitante')
+    ){
+      header = cells;
+      headerIdx = i;
+      break;
+    }
+  }
 
-  if(t4.includes('semifinal 1')) out.sf1 = { gl: parseGoles(r4[1]), gv: parseGoles(r4[2]) };
-  if(t5.includes('semifinal 2')) out.sf2 = { gl: parseGoles(r5[1]), gv: parseGoles(r5[2]) };
-  if(t6 === 'final' || t6.includes('gran final')) out.final = { gl: parseGoles(r6[1]), gv: parseGoles(r6[2]) };
+  if(header){
+    const cEtapa = header.findIndex(h => h === 'etapa');
+    const cGL = header.findIndex(h => h === 'goles local' || h === 'gl');
+    const cGV = header.findIndex(h => h === 'goles visitante' || h === 'gv');
 
-  // 2) Respaldo flexible por texto, por si luego mueves filas
-  for(let i=0;i<rows.length;i++){
-    const etapa = normalizarTexto(rows[i] && rows[i][0]);
+    for(let i = headerIdx + 1; i < rows.length; i++){
+      const r = rows[i] || [];
+      const etapa = normalizarTexto(r[cEtapa]);
+      if(!etapa) continue;
+
+      const gl = parseGoles(r[cGL]);
+      const gv = parseGoles(r[cGV]);
+
+      if(etapa.includes('semifinal 1') || etapa === 'sf1' || etapa.includes('semi 1')){
+        out.sf1 = { gl, gv };
+        continue;
+      }
+
+      if(etapa.includes('semifinal 2') || etapa === 'sf2' || etapa.includes('semi 2')){
+        out.sf2 = { gl, gv };
+        continue;
+      }
+
+      if(etapa === 'final' || etapa.includes('gran final')){
+        out.final = { gl, gv };
+      }
+    }
+
+    return out;
+  }
+
+  for(let i = 0; i < rows.length; i++){
+    const r = rows[i] || [];
+    let etapa = '';
+    let etapaCol = -1;
+
+    for(let j = 0; j < Math.min(r.length, 5); j++){
+      const txt = normalizarTexto(r[j]);
+      if(
+        txt.includes('semifinal 1') ||
+        txt.includes('semifinal 2') ||
+        txt === 'final' ||
+        txt.includes('gran final') ||
+        txt === 'sf1' ||
+        txt === 'sf2'
+      ){
+        etapa = txt;
+        etapaCol = j;
+        break;
+      }
+    }
+
     if(!etapa) continue;
 
-    const gl = parseGoles(rows[i][1]);
-    const gv = parseGoles(rows[i][2]);
+    const gl = parseGoles(r[etapaCol + 1]);
+    const gv = parseGoles(r[etapaCol + 2]);
 
-    if(out.sf1.gl === null && out.sf1.gv === null && (etapa.includes('semifinal 1') || etapa === 'sf1' || etapa.includes('semi 1'))){
+    if(etapa.includes('semifinal 1') || etapa === 'sf1' || etapa.includes('semi 1')){
       out.sf1 = { gl, gv };
       continue;
     }
 
-    if(out.sf2.gl === null && out.sf2.gv === null && (etapa.includes('semifinal 2') || etapa === 'sf2' || etapa.includes('semi 2'))){
+    if(etapa.includes('semifinal 2') || etapa === 'sf2' || etapa.includes('semi 2')){
       out.sf2 = { gl, gv };
       continue;
     }
 
-    if(out.final.gl === null && out.final.gv === null && (etapa === 'final' || etapa.includes('gran final'))){
+    if(etapa === 'final' || etapa.includes('gran final')){
       out.final = { gl, gv };
     }
   }
