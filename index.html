@@ -116,7 +116,21 @@
       <div class="info-card"><div class="label">🏁 Arbitraje</div><div class="value">$250 MXN</div><div class="sub">por partido</div></div>
       <div class="info-card"><div class="label">👥 Cupo</div><div class="value">Limitado a 8 equipos</div></div>
     </div>
-  </section>
+  
+    <h3 class="section-title">Reglas del torneo</h3>
+    <div class="info-card" style="max-width:700px;margin:auto">
+      <ol style="padding-left:18px;line-height:1.8">
+        <li>No hay barridas (tarjeta amarilla en caso de barrerse)</li>
+        <li>Se juega con 8 en campo</li>
+        <li>No hay fuera de lugar</li>
+        <li>El saque de banda es con el pie</li>
+        <li>No hay gol directo desde saque de banda o saque de meta</li>
+        <li>Sexta falta genera penal</li>
+        <li>Llevar al menos un balón</li>
+      </ol>
+    </div>
+
+</section>
 
   <section id="calendario" class="tab-panel">
     <h3 class="section-title">Calendario y resultados</h3>
@@ -280,21 +294,16 @@ function parseLiguilla(rows){
 
   if(!rows || !rows.length) return out;
 
-  const esEtapaExacta = (txt) => (
-    txt === 'semifinal 1' ||
-    txt === 'semifinal 2' ||
-    txt === 'final' ||
-    txt === 'gran final' ||
-    txt === 'sf1' ||
-    txt === 'sf2'
-  );
-
   let header = null;
   let headerIdx = -1;
 
   for(let i = 0; i < rows.length; i++){
     const cells = (rows[i] || []).map(c => normalizarTexto(c));
-    if(cells.includes('etapa') && cells.includes('goles local') && cells.includes('goles visitante')){
+    if(
+      cells.includes('etapa') &&
+      cells.includes('goles local') &&
+      cells.includes('goles visitante')
+    ){
       header = cells;
       headerIdx = i;
       break;
@@ -309,22 +318,22 @@ function parseLiguilla(rows){
     for(let i = headerIdx + 1; i < rows.length; i++){
       const r = rows[i] || [];
       const etapa = normalizarTexto(r[cEtapa]);
-      if(!esEtapaExacta(etapa)) continue;
+      if(!etapa) continue;
 
       const gl = parseGoles(r[cGL]);
       const gv = parseGoles(r[cGV]);
 
-      if(etapa === 'semifinal 1' || etapa === 'sf1'){
+      if(etapa.includes('semifinal 1') || etapa === 'sf1' || etapa.includes('semi 1')){
         out.sf1 = { gl, gv };
         continue;
       }
 
-      if(etapa === 'semifinal 2' || etapa === 'sf2'){
+      if(etapa.includes('semifinal 2') || etapa === 'sf2' || etapa.includes('semi 2')){
         out.sf2 = { gl, gv };
         continue;
       }
 
-      if(etapa === 'final' || etapa === 'gran final'){
+      if(etapa === 'final' || etapa.includes('gran final')){
         out.final = { gl, gv };
       }
     }
@@ -339,7 +348,14 @@ function parseLiguilla(rows){
 
     for(let j = 0; j < Math.min(r.length, 5); j++){
       const txt = normalizarTexto(r[j]);
-      if(esEtapaExacta(txt)){
+      if(
+        txt.includes('semifinal 1') ||
+        txt.includes('semifinal 2') ||
+        txt === 'final' ||
+        txt.includes('gran final') ||
+        txt === 'sf1' ||
+        txt === 'sf2'
+      ){
         etapa = txt;
         etapaCol = j;
         break;
@@ -351,24 +367,23 @@ function parseLiguilla(rows){
     const gl = parseGoles(r[etapaCol + 1]);
     const gv = parseGoles(r[etapaCol + 2]);
 
-    if(etapa === 'semifinal 1' || etapa === 'sf1'){
+    if(etapa.includes('semifinal 1') || etapa === 'sf1' || etapa.includes('semi 1')){
       out.sf1 = { gl, gv };
       continue;
     }
 
-    if(etapa === 'semifinal 2' || etapa === 'sf2'){
+    if(etapa.includes('semifinal 2') || etapa === 'sf2' || etapa.includes('semi 2')){
       out.sf2 = { gl, gv };
       continue;
     }
 
-    if(etapa === 'final' || etapa === 'gran final'){
+    if(etapa === 'final' || etapa.includes('gran final')){
       out.final = { gl, gv };
     }
   }
 
   return out;
 }
-
 
 function derivarEquipos(partidos){
   const set = new Set();
@@ -631,7 +646,7 @@ document.querySelectorAll('#mainTabs button').forEach(btn => {
 });
 
 cargarDatos();
-// Auto-refresh desactivado para no mover la vista del usuario.
+setInterval(cargarDatos, 10 * 1000);
 </script>
 </body>
 </html>
