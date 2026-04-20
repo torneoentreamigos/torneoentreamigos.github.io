@@ -162,7 +162,7 @@ const LIGUILLA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?
 
 let DATA = { partidos: [], equipos: [], liguilla: { sf1:{gl:null,gv:null}, sf2:{gl:null,gv:null}, final:{gl:null,gv:null} } };
 let UI_STATE = { tab: 'inicio', jornada: null };
-const AUTO_REFRESH_MS = 10 * 1000;
+let AUTO_REFRESH_MS = 0;
 let autoRefreshHandle = null;
 
 function parseCSV(text){
@@ -433,6 +433,7 @@ function renderCalendario(){
 
   const jornadas = [...new Set(DATA.partidos.map(p => p.jornada))].sort((a,b) => a-b);
   if(!jornadas.length){
+    UI_STATE.jornada = null;
     contEl.innerHTML = '<div class="alert info">No encontré partidos en la pestaña Partidos.</div>';
     return;
   }
@@ -461,7 +462,8 @@ function renderCalendario(){
       document.querySelectorAll('#jornadaTabs button').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.jornada-block').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      document.getElementById('jor-' + j).classList.add('active');
+      const block = document.getElementById('jor-' + j);
+      if(block) block.classList.add('active');
     };
     tabsEl.appendChild(btn);
 
@@ -623,6 +625,7 @@ async function cargarDatos(options = {}){
       liguillaStatus = 'Liguilla no leída: ' + (errLiguilla.message || 'error');
       console.warn(errLiguilla);
     }
+
     renderCalendario();
     renderTabla();
     renderLiguilla();
@@ -653,7 +656,9 @@ document.querySelectorAll('#mainTabs button').forEach(btn => {
 });
 
 cargarDatos();
-autoRefreshHandle = setInterval(() => cargarDatos({ silent: true }), AUTO_REFRESH_MS);
+if(AUTO_REFRESH_MS > 0){
+  autoRefreshHandle = setInterval(() => cargarDatos({ silent: true }), AUTO_REFRESH_MS);
+}
 </script>
 </body>
 </html>
