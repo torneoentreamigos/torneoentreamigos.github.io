@@ -162,8 +162,6 @@ const LIGUILLA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?
 
 let DATA = { partidos: [], equipos: [], liguilla: { sf1:{gl:null,gv:null}, sf2:{gl:null,gv:null}, final:{gl:null,gv:null} } };
 
-let UI_STATE = { activeTab: 'inicio', activeJornada: null };
-
 function parseCSV(text){
   const rows = [];
   let cur = [], val = '', inQuotes = false;
@@ -282,25 +280,21 @@ function parseLiguilla(rows){
 
   if(!rows || !rows.length) return out;
 
-  const identificarEtapa = (valor) => {
-    const etapa = normalizarTexto(valor);
-    if(!etapa) return null;
-    if(etapa === 'semifinal 1' || etapa === 'sf1' || etapa === 'semi 1') return 'sf1';
-    if(etapa === 'semifinal 2' || etapa === 'sf2' || etapa === 'semi 2') return 'sf2';
-    if(etapa === 'final' || etapa === 'gran final') return 'final';
-    return null;
-  };
+  const esEtapaExacta = (txt) => (
+    txt === 'semifinal 1' ||
+    txt === 'semifinal 2' ||
+    txt === 'final' ||
+    txt === 'gran final' ||
+    txt === 'sf1' ||
+    txt === 'sf2'
+  );
 
   let header = null;
   let headerIdx = -1;
 
   for(let i = 0; i < rows.length; i++){
     const cells = (rows[i] || []).map(c => normalizarTexto(c));
-    if(
-      cells.includes('etapa') &&
-      cells.includes('goles local') &&
-      cells.includes('goles visitante')
-    ){
+    if(cells.includes('etapa') && cells.includes('goles local') && cells.includes('goles visitante')){
       header = cells;
       headerIdx = i;
       break;
@@ -314,9 +308,25 @@ function parseLiguilla(rows){
 
     for(let i = headerIdx + 1; i < rows.length; i++){
       const r = rows[i] || [];
-      const clave = identificarEtapa(r[cEtapa]);
-      if(!clave) continue;
-      out[clave] = { gl: parseGoles(r[cGL]), gv: parseGoles(r[cGV]) };
+      const etapa = normalizarTexto(r[cEtapa]);
+      if(!esEtapaExacta(etapa)) continue;
+
+      const gl = parseGoles(r[cGL]);
+      const gv = parseGoles(r[cGV]);
+
+      if(etapa === 'semifinal 1' || etapa === 'sf1'){
+        out.sf1 = { gl, gv };
+        continue;
+      }
+
+      if(etapa === 'semifinal 2' || etapa === 'sf2'){
+        out.sf2 = { gl, gv };
+        continue;
+      }
+
+      if(etapa === 'final' || etapa === 'gran final'){
+        out.final = { gl, gv };
+      }
     }
 
     return out;
@@ -324,16 +334,41 @@ function parseLiguilla(rows){
 
   for(let i = 0; i < rows.length; i++){
     const r = rows[i] || [];
+    let etapa = '';
+    let etapaCol = -1;
+
     for(let j = 0; j < Math.min(r.length, 5); j++){
-      const clave = identificarEtapa(r[j]);
-      if(!clave) continue;
-      out[clave] = { gl: parseGoles(r[j + 1]), gv: parseGoles(r[j + 2]) };
-      break;
+      const txt = normalizarTexto(r[j]);
+      if(esEtapaExacta(txt)){
+        etapa = txt;
+        etapaCol = j;
+        break;
+      }
+    }
+
+    if(!etapa) continue;
+
+    const gl = parseGoles(r[etapaCol + 1]);
+    const gv = parseGoles(r[etapaCol + 2]);
+
+    if(etapa === 'semifinal 1' || etapa === 'sf1'){
+      out.sf1 = { gl, gv };
+      continue;
+    }
+
+    if(etapa === 'semifinal 2' || etapa === 'sf2'){
+      out.sf2 = { gl, gv };
+      continue;
+    }
+
+    if(etapa === 'final' || etapa === 'gran final'){
+      out.final = { gl, gv };
     }
   }
 
   return out;
 }
+
 
 function derivarEquipos(partidos){
   const set = new Set();
@@ -395,21 +430,16 @@ function renderCalendario(){
   const jornadas = [...new Set(DATA.partidos.map(p => p.jornada))].sort((a,b) => a-b);
   if(!jornadas.length){
     contEl.innerHTML = '<div class="alert info">No encontré partidos en la pestaña Partidos.</div>';
-    UI_STATE.activeJornada = null;
     return;
   }
 
-  let activeJor = jornadas.includes(UI_STATE.activeJornada) ? UI_STATE.activeJornada : null;
-  if(activeJor === null){
-    activeJor = jornadas[0];
-    for(const j of jornadas){
-      const partidos = DATA.partidos.filter(p => p.jornada === j);
-      const conResultado = partidos.filter(p => p.gl !== null && p.gv !== null).length;
-      if(conResultado < partidos.length){ activeJor = j; break; }
-      activeJor = j;
-    }
+  let activeJor = jornadas[0];
+  for(const j of jornadas){
+    const partidos = DATA.partidos.filter(p => p.jornada === j);
+    const conResultado = partidos.filter(p => p.gl !== null && p.gv !== null).length;
+    if(conResultado < partidos.length){ activeJor = j; break; }
+    activeJor = j;
   }
-  UI_STATE.activeJornada = activeJor;
 
   jornadas.forEach(j => {
     const btn = document.createElement('button');
@@ -417,7 +447,6 @@ function renderCalendario(){
     btn.dataset.jor = j;
     if(j === activeJor) btn.classList.add('active');
     btn.onclick = () => {
-      UI_STATE.activeJornada = j;
       document.querySelectorAll('#jornadaTabs button').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.jornada-block').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
@@ -584,8 +613,6 @@ async function cargarDatos(){
     renderCalendario();
     renderTabla();
     renderLiguilla();
-    document.querySelectorAll('#mainTabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === UI_STATE.activeTab));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === UI_STATE.activeTab));
     document.getElementById('updateInfo').textContent = `Datos actualizados: ${new Date().toLocaleString('es-MX')} · Partidos cargados: ${DATA.partidos.length} · ${liguillaStatus}`;
   }catch(err){
     console.error(err);
@@ -595,7 +622,6 @@ async function cargarDatos(){
 
 document.querySelectorAll('#mainTabs button').forEach(btn => {
   btn.onclick = () => {
-    UI_STATE.activeTab = btn.dataset.tab;
     document.querySelectorAll('#mainTabs button').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
@@ -605,6 +631,7 @@ document.querySelectorAll('#mainTabs button').forEach(btn => {
 });
 
 cargarDatos();
+// Auto-refresh desactivado para no mover la vista del usuario.
 </script>
 </body>
 </html>
