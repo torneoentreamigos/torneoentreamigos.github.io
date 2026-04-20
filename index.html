@@ -161,9 +161,7 @@ const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?forma
 const LIGUILLA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${LIGUILLA_GID}`;
 
 let DATA = { partidos: [], equipos: [], liguilla: { sf1:{gl:null,gv:null}, sf2:{gl:null,gv:null}, final:{gl:null,gv:null} } };
-let UI_STATE = { tab: 'inicio', jornada: null };
-let AUTO_REFRESH_MS = 0;
-let autoRefreshHandle = null;
+let UI_STATE = { activeTab: 'inicio', activeJornada: null };
 
 function parseCSV(text){
   const rows = [];
@@ -274,6 +272,18 @@ function normalizarTexto(s){
     .toLowerCase();
 }
 
+function identificarEtapaLiguilla(txt){
+  const t = normalizarTexto(txt)
+    .replace(/[()]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if(/^semifinal 1$/.test(t) || /^sf1$/.test(t) || /^semi 1$/.test(t)) return 'sf1';
+  if(/^semifinal 2$/.test(t) || /^sf2$/.test(t) || /^semi 2$/.test(t)) return 'sf2';
+  if(/^final$/.test(t) || /^gran final$/.test(t)) return 'final';
+  return null;
+}
+
 function parseLiguilla(rows){
   const out = {
     sf1: { gl: null, gv: null },
@@ -288,11 +298,7 @@ function parseLiguilla(rows){
 
   for(let i = 0; i < rows.length; i++){
     const cells = (rows[i] || []).map(c => normalizarTexto(c));
-    if(
-      cells.includes('etapa') &&
-      cells.includes('goles local') &&
-      cells.includes('goles visitante')
-    ){
+    if(cells.includes('etapa') && cells.includes('goles local') && cells.includes('goles visitante')){
       header = cells;
       headerIdx = i;
       break;
@@ -306,25 +312,12 @@ function parseLiguilla(rows){
 
     for(let i = headerIdx + 1; i < rows.length; i++){
       const r = rows[i] || [];
-      const etapa = normalizarTexto(r[cEtapa]);
-      if(!etapa) continue;
+      const tipo = identificarEtapaLiguilla(r[cEtapa]);
+      if(!tipo) continue;
 
       const gl = parseGoles(r[cGL]);
       const gv = parseGoles(r[cGV]);
-
-      if(etapa.includes('semifinal 1') || etapa === 'sf1' || etapa.includes('semi 1')){
-        out.sf1 = { gl, gv };
-        continue;
-      }
-
-      if(etapa.includes('semifinal 2') || etapa === 'sf2' || etapa.includes('semi 2')){
-        out.sf2 = { gl, gv };
-        continue;
-      }
-
-      if(etapa === 'final' || etapa.includes('gran final')){
-        out.final = { gl, gv };
-      }
+      out[tipo] = { gl, gv };
     }
 
     return out;
@@ -332,43 +325,22 @@ function parseLiguilla(rows){
 
   for(let i = 0; i < rows.length; i++){
     const r = rows[i] || [];
-    let etapa = '';
+    let tipo = null;
     let etapaCol = -1;
 
     for(let j = 0; j < Math.min(r.length, 5); j++){
-      const txt = normalizarTexto(r[j]);
-      if(
-        txt.includes('semifinal 1') ||
-        txt.includes('semifinal 2') ||
-        txt === 'final' ||
-        txt.includes('gran final') ||
-        txt === 'sf1' ||
-        txt === 'sf2'
-      ){
-        etapa = txt;
+      tipo = identificarEtapaLiguilla(r[j]);
+      if(tipo){
         etapaCol = j;
         break;
       }
     }
 
-    if(!etapa) continue;
+    if(!tipo || etapaCol === -1) continue;
 
     const gl = parseGoles(r[etapaCol + 1]);
     const gv = parseGoles(r[etapaCol + 2]);
-
-    if(etapa.includes('semifinal 1') || etapa === 'sf1' || etapa.includes('semi 1')){
-      out.sf1 = { gl, gv };
-      continue;
-    }
-
-    if(etapa.includes('semifinal 2') || etapa === 'sf2' || etapa.includes('semi 2')){
-      out.sf2 = { gl, gv };
-      continue;
-    }
-
-    if(etapa === 'final' || etapa.includes('gran final')){
-      out.final = { gl, gv };
-    }
+    out[tipo] = { gl, gv };
   }
 
   return out;
@@ -433,13 +405,12 @@ function renderCalendario(){
 
   const jornadas = [...new Set(DATA.partidos.map(p => p.jornada))].sort((a,b) => a-b);
   if(!jornadas.length){
-    UI_STATE.jornada = null;
     contEl.innerHTML = '<div class="alert info">No encontré partidos en la pestaña Partidos.</div>';
+    UI_STATE.activeJornada = null;
     return;
   }
 
-  let activeJor = (UI_STATE.jornada !== null && jornadas.includes(UI_STATE.jornada)) ? UI_STATE.jornada : null;
-
+  let activeJor = jornadas.includes(UI_STATE.activeJornada) ? UI_STATE.activeJornada : null;
   if(activeJor === null){
     activeJor = jornadas[0];
     for(const j of jornadas){
@@ -449,8 +420,7 @@ function renderCalendario(){
       activeJor = j;
     }
   }
-
-  UI_STATE.jornada = activeJor;
+  UI_STATE.activeJornada = activeJor;
 
   jornadas.forEach(j => {
     const btn = document.createElement('button');
@@ -458,12 +428,11 @@ function renderCalendario(){
     btn.dataset.jor = j;
     if(j === activeJor) btn.classList.add('active');
     btn.onclick = () => {
-      UI_STATE.jornada = j;
+      UI_STATE.activeJornada = j;
       document.querySelectorAll('#jornadaTabs button').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.jornada-block').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      const block = document.getElementById('jor-' + j);
-      if(block) block.classList.add('active');
+      document.getElementById('jor-' + j).classList.add('active');
     };
     tabsEl.appendChild(btn);
 
@@ -606,9 +575,7 @@ function mostrarError(msg){
   const fc = document.getElementById('finalContainer'); if(fc) fc.innerHTML = '';
 }
 
-async function cargarDatos(options = {}){
-  const { silent = false } = options;
-
+async function cargarDatos(){
   try{
     const rowsPartidos = await fetchPartidos();
     DATA.partidos = parsePartidos(rowsPartidos);
@@ -625,40 +592,29 @@ async function cargarDatos(options = {}){
       liguillaStatus = 'Liguilla no leída: ' + (errLiguilla.message || 'error');
       console.warn(errLiguilla);
     }
-
     renderCalendario();
     renderTabla();
     renderLiguilla();
-    restoreActiveTab();
     document.getElementById('updateInfo').textContent = `Datos actualizados: ${new Date().toLocaleString('es-MX')} · Partidos cargados: ${DATA.partidos.length} · ${liguillaStatus}`;
   }catch(err){
     console.error(err);
-    if(!silent) mostrarError(err.message || 'Error desconocido');
+    mostrarError(err.message || 'Error desconocido');
   }
-}
-
-function activateTab(tabId){
-  UI_STATE.tab = tabId;
-  document.querySelectorAll('#mainTabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === tabId));
-}
-
-function restoreActiveTab(){
-  const validTab = document.getElementById(UI_STATE.tab) ? UI_STATE.tab : 'inicio';
-  activateTab(validTab);
 }
 
 document.querySelectorAll('#mainTabs button').forEach(btn => {
   btn.onclick = () => {
-    activateTab(btn.dataset.tab);
+    UI_STATE.activeTab = btn.dataset.tab;
+    document.querySelectorAll('#mainTabs button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
     window.scrollTo({top:0,behavior:'smooth'});
   };
 });
 
 cargarDatos();
-if(AUTO_REFRESH_MS > 0){
-  autoRefreshHandle = setInterval(() => cargarDatos({ silent: true }), AUTO_REFRESH_MS);
-}
+setInterval(cargarDatos, 10 * 1000);
 </script>
 </body>
 </html>
