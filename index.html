@@ -330,6 +330,36 @@ function extraerMarcadoresDesdeFila(row, startIdx = 0){
   return { gl: null, gv: null };
 }
 
+function extraerMarcadoresDesdeTexto(texto){
+  const s = String(texto || '').replace(/ /g, ' ').trim();
+  if(!s) return null;
+
+  const match = s.match(/(\d{1,2})\s*[-:–]\s*(\d{1,2})/);
+  if(match) return { gl: Number(match[1]), gv: Number(match[2]) };
+  return null;
+}
+
+function extraerMarcadoresCercanos(rows, baseRow, baseCol){
+  const candidatos = [];
+
+  for(let i = Math.max(0, baseRow - 1); i <= Math.min(rows.length - 1, baseRow + 2); i++){
+    const row = rows[i] || [];
+    for(let j = Math.max(0, baseCol); j <= Math.min(row.length - 1, baseCol + 6); j++){
+      const desdeTexto = extraerMarcadoresDesdeTexto(row[j]);
+      if(desdeTexto) return desdeTexto;
+    }
+
+    const nums = [];
+    for(let j = Math.max(0, baseCol); j <= Math.min(row.length - 1, baseCol + 6); j++){
+      const n = parseGoles(row[j]);
+      if(n !== null) nums.push(n);
+    }
+    if(nums.length >= 2) candidatos.push({ gl: nums[0], gv: nums[1] });
+  }
+
+  return candidatos[0] || { gl: null, gv: null };
+}
+
 function parseLiguilla(rows){
   const out = {
     sf1: { gl: null, gv: null },
@@ -361,20 +391,24 @@ function parseLiguilla(rows){
       const etapaKey = detectarEtapaLiguilla(r[cEtapa]);
       if(!etapaKey) continue;
 
-      let marcadores;
-      if(cGL >= 0 && cGV >= 0){
-        marcadores = { gl: parseGoles(r[cGL]), gv: parseGoles(r[cGV]) };
-        if(marcadores.gl === null && marcadores.gv === null){
-          marcadores = extraerMarcadoresDesdeFila(r, Math.max(cEtapa + 1, 0));
-        }
-      } else {
-        marcadores = extraerMarcadoresDesdeFila(r, Math.max(cEtapa + 1, 0));
+      let marcadores = { gl: null, gv: null };
+      if(cGL >= 0) marcadores.gl = parseGoles(r[cGL]);
+      if(cGV >= 0) marcadores.gv = parseGoles(r[cGV]);
+
+      if(marcadores.gl === null || marcadores.gv === null){
+        const desdeFila = extraerMarcadoresDesdeFila(r, Math.max(cEtapa + 1, 0));
+        if(marcadores.gl === null) marcadores.gl = desdeFila.gl;
+        if(marcadores.gv === null) marcadores.gv = desdeFila.gv;
+      }
+
+      if(marcadores.gl === null || marcadores.gv === null){
+        const cerca = extraerMarcadoresCercanos(rows, i, Math.max(cEtapa + 1, 0));
+        if(marcadores.gl === null) marcadores.gl = cerca.gl;
+        if(marcadores.gv === null) marcadores.gv = cerca.gv;
       }
 
       out[etapaKey] = marcadores;
     }
-
-    return out;
   }
 
   for(let i = 0; i < rows.length; i++){
@@ -382,7 +416,22 @@ function parseLiguilla(rows){
     for(let j = 0; j < r.length; j++){
       const etapaKey = detectarEtapaLiguilla(r[j]);
       if(!etapaKey) continue;
-      out[etapaKey] = extraerMarcadoresDesdeFila(r, j + 1);
+
+      const actual = out[etapaKey] || { gl:null, gv:null };
+      if(actual.gl !== null && actual.gv !== null) break;
+
+      let marcadores = extraerMarcadoresDesdeFila(r, j + 1);
+      if(marcadores.gl === null || marcadores.gv === null){
+        const enTexto = extraerMarcadoresDesdeTexto(r[j]);
+        if(enTexto) marcadores = enTexto;
+      }
+      if(marcadores.gl === null || marcadores.gv === null){
+        const cerca = extraerMarcadoresCercanos(rows, i, j + 1);
+        if(marcadores.gl === null) marcadores.gl = cerca.gl;
+        if(marcadores.gv === null) marcadores.gv = cerca.gv;
+      }
+
+      out[etapaKey] = marcadores;
       break;
     }
   }
