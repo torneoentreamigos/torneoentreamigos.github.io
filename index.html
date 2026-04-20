@@ -288,6 +288,48 @@ function normalizarTexto(s){
     .toLowerCase();
 }
 
+function detectarEtapaLiguilla(texto){
+  const t = normalizarTexto(texto)
+    .replace(/[-_:]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if(!t) return null;
+
+  if(
+    t.includes('semifinal 1') ||
+    t.includes('semi final 1') ||
+    t.includes('semi 1') ||
+    t.includes('sf 1') ||
+    t === 'sf1' ||
+    t === 's1'
+  ) return 'sf1';
+
+  if(
+    t.includes('semifinal 2') ||
+    t.includes('semi final 2') ||
+    t.includes('semi 2') ||
+    t.includes('sf 2') ||
+    t === 'sf2' ||
+    t === 's2'
+  ) return 'sf2';
+
+  if(t === 'final' || t.includes('gran final')) return 'final';
+
+  return null;
+}
+
+function extraerMarcadoresDesdeFila(row, startIdx = 0){
+  const nums = [];
+  for(let i = startIdx; i < row.length; i++){
+    const n = parseGoles(row[i]);
+    if(n !== null) nums.push(n);
+    if(nums.length === 2) break;
+  }
+  if(nums.length >= 2) return { gl: nums[0], gv: nums[1] };
+  return { gl: null, gv: null };
+}
+
 function parseLiguilla(rows){
   const out = {
     sf1: { gl: null, gv: null },
@@ -302,11 +344,7 @@ function parseLiguilla(rows){
 
   for(let i = 0; i < rows.length; i++){
     const cells = (rows[i] || []).map(c => normalizarTexto(c));
-    if(
-      cells.includes('etapa') &&
-      cells.includes('goles local') &&
-      cells.includes('goles visitante')
-    ){
+    if(cells.includes('etapa')){
       header = cells;
       headerIdx = i;
       break;
@@ -315,30 +353,25 @@ function parseLiguilla(rows){
 
   if(header){
     const cEtapa = header.findIndex(h => h === 'etapa');
-    const cGL = header.findIndex(h => h === 'goles local' || h === 'gl');
-    const cGV = header.findIndex(h => h === 'goles visitante' || h === 'gv');
+    const cGL = header.findIndex(h => h === 'goles local' || h === 'gl' || h === 'marcador local');
+    const cGV = header.findIndex(h => h === 'goles visitante' || h === 'gv' || h === 'marcador visitante');
 
     for(let i = headerIdx + 1; i < rows.length; i++){
       const r = rows[i] || [];
-      const etapa = normalizarTexto(r[cEtapa]);
-      if(!etapa) continue;
+      const etapaKey = detectarEtapaLiguilla(r[cEtapa]);
+      if(!etapaKey) continue;
 
-      const gl = parseGoles(r[cGL]);
-      const gv = parseGoles(r[cGV]);
-
-      if(etapa.includes('semifinal 1') || etapa === 'sf1' || etapa.includes('semi 1')){
-        out.sf1 = { gl, gv };
-        continue;
+      let marcadores;
+      if(cGL >= 0 && cGV >= 0){
+        marcadores = { gl: parseGoles(r[cGL]), gv: parseGoles(r[cGV]) };
+        if(marcadores.gl === null && marcadores.gv === null){
+          marcadores = extraerMarcadoresDesdeFila(r, Math.max(cEtapa + 1, 0));
+        }
+      } else {
+        marcadores = extraerMarcadoresDesdeFila(r, Math.max(cEtapa + 1, 0));
       }
 
-      if(etapa.includes('semifinal 2') || etapa === 'sf2' || etapa.includes('semi 2')){
-        out.sf2 = { gl, gv };
-        continue;
-      }
-
-      if(etapa === 'final' || etapa.includes('gran final')){
-        out.final = { gl, gv };
-      }
+      out[etapaKey] = marcadores;
     }
 
     return out;
@@ -346,42 +379,11 @@ function parseLiguilla(rows){
 
   for(let i = 0; i < rows.length; i++){
     const r = rows[i] || [];
-    let etapa = '';
-    let etapaCol = -1;
-
-    for(let j = 0; j < Math.min(r.length, 5); j++){
-      const txt = normalizarTexto(r[j]);
-      if(
-        txt.includes('semifinal 1') ||
-        txt.includes('semifinal 2') ||
-        txt === 'final' ||
-        txt.includes('gran final') ||
-        txt === 'sf1' ||
-        txt === 'sf2'
-      ){
-        etapa = txt;
-        etapaCol = j;
-        break;
-      }
-    }
-
-    if(!etapa) continue;
-
-    const gl = parseGoles(r[etapaCol + 1]);
-    const gv = parseGoles(r[etapaCol + 2]);
-
-    if(etapa.includes('semifinal 1') || etapa === 'sf1' || etapa.includes('semi 1')){
-      out.sf1 = { gl, gv };
-      continue;
-    }
-
-    if(etapa.includes('semifinal 2') || etapa === 'sf2' || etapa.includes('semi 2')){
-      out.sf2 = { gl, gv };
-      continue;
-    }
-
-    if(etapa === 'final' || etapa.includes('gran final')){
-      out.final = { gl, gv };
+    for(let j = 0; j < r.length; j++){
+      const etapaKey = detectarEtapaLiguilla(r[j]);
+      if(!etapaKey) continue;
+      out[etapaKey] = extraerMarcadoresDesdeFila(r, j + 1);
+      break;
     }
   }
 
