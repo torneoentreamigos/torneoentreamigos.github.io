@@ -161,6 +161,7 @@ const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?forma
 const LIGUILLA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${LIGUILLA_GID}`;
 
 let DATA = { partidos: [], equipos: [], liguilla: { sf1:{gl:null,gv:null}, sf2:{gl:null,gv:null}, final:{gl:null,gv:null} } };
+
 let UI_STATE = { activeTab: 'inicio', activeJornada: null };
 
 function parseCSV(text){
@@ -272,18 +273,6 @@ function normalizarTexto(s){
     .toLowerCase();
 }
 
-function identificarEtapaLiguilla(txt){
-  const t = normalizarTexto(txt)
-    .replace(/[()]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-
-  if(/^semifinal 1$/.test(t) || /^sf1$/.test(t) || /^semi 1$/.test(t)) return 'sf1';
-  if(/^semifinal 2$/.test(t) || /^sf2$/.test(t) || /^semi 2$/.test(t)) return 'sf2';
-  if(/^final$/.test(t) || /^gran final$/.test(t)) return 'final';
-  return null;
-}
-
 function parseLiguilla(rows){
   const out = {
     sf1: { gl: null, gv: null },
@@ -293,12 +282,25 @@ function parseLiguilla(rows){
 
   if(!rows || !rows.length) return out;
 
+  const identificarEtapa = (valor) => {
+    const etapa = normalizarTexto(valor);
+    if(!etapa) return null;
+    if(etapa === 'semifinal 1' || etapa === 'sf1' || etapa === 'semi 1') return 'sf1';
+    if(etapa === 'semifinal 2' || etapa === 'sf2' || etapa === 'semi 2') return 'sf2';
+    if(etapa === 'final' || etapa === 'gran final') return 'final';
+    return null;
+  };
+
   let header = null;
   let headerIdx = -1;
 
   for(let i = 0; i < rows.length; i++){
     const cells = (rows[i] || []).map(c => normalizarTexto(c));
-    if(cells.includes('etapa') && cells.includes('goles local') && cells.includes('goles visitante')){
+    if(
+      cells.includes('etapa') &&
+      cells.includes('goles local') &&
+      cells.includes('goles visitante')
+    ){
       header = cells;
       headerIdx = i;
       break;
@@ -312,12 +314,9 @@ function parseLiguilla(rows){
 
     for(let i = headerIdx + 1; i < rows.length; i++){
       const r = rows[i] || [];
-      const tipo = identificarEtapaLiguilla(r[cEtapa]);
-      if(!tipo) continue;
-
-      const gl = parseGoles(r[cGL]);
-      const gv = parseGoles(r[cGV]);
-      out[tipo] = { gl, gv };
+      const clave = identificarEtapa(r[cEtapa]);
+      if(!clave) continue;
+      out[clave] = { gl: parseGoles(r[cGL]), gv: parseGoles(r[cGV]) };
     }
 
     return out;
@@ -325,22 +324,12 @@ function parseLiguilla(rows){
 
   for(let i = 0; i < rows.length; i++){
     const r = rows[i] || [];
-    let tipo = null;
-    let etapaCol = -1;
-
     for(let j = 0; j < Math.min(r.length, 5); j++){
-      tipo = identificarEtapaLiguilla(r[j]);
-      if(tipo){
-        etapaCol = j;
-        break;
-      }
+      const clave = identificarEtapa(r[j]);
+      if(!clave) continue;
+      out[clave] = { gl: parseGoles(r[j + 1]), gv: parseGoles(r[j + 2]) };
+      break;
     }
-
-    if(!tipo || etapaCol === -1) continue;
-
-    const gl = parseGoles(r[etapaCol + 1]);
-    const gv = parseGoles(r[etapaCol + 2]);
-    out[tipo] = { gl, gv };
   }
 
   return out;
@@ -595,6 +584,8 @@ async function cargarDatos(){
     renderCalendario();
     renderTabla();
     renderLiguilla();
+    document.querySelectorAll('#mainTabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === UI_STATE.activeTab));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === UI_STATE.activeTab));
     document.getElementById('updateInfo').textContent = `Datos actualizados: ${new Date().toLocaleString('es-MX')} · Partidos cargados: ${DATA.partidos.length} · ${liguillaStatus}`;
   }catch(err){
     console.error(err);
@@ -614,7 +605,6 @@ document.querySelectorAll('#mainTabs button').forEach(btn => {
 });
 
 cargarDatos();
-setInterval(cargarDatos, 10 * 1000);
 </script>
 </body>
 </html>
