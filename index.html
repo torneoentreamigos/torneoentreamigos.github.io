@@ -212,10 +212,10 @@
 const SHEET_ID = "1EBiMSjrKrqI0zCrbc3XDc901jVCcSO8EO9jfjk4bTiU";
 const PARTIDOS_GID = "402566664"; // pestaña Partidos
 const LIGUILLA_GID = "837279737"; // pestaña Liguilla
-const GOLEO_SHEET_NAME = "Goleo"; // nueva hoja para capturar goleadores
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${PARTIDOS_GID}`;
 const LIGUILLA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${LIGUILLA_GID}`;
-const GOLEO_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(GOLEO_SHEET_NAME)}`;
+const GOLEO_GID = "1263143535"; // pestaña Goleo
+const GOLEO_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GOLEO_GID}`;
 
 let DATA = { partidos: [], equipos: [], goleo: [], liguilla: { sf1:{gl:null,gv:null}, sf2:{gl:null,gv:null}, final:{gl:null,gv:null} } };
 let selectedJornada = null;
@@ -275,6 +275,9 @@ async function fetchLiguilla(){
 }
 
 async function fetchGoleo(){
+  if(!GOLEO_GID || GOLEO_GID.includes('PEGAR_GID_GOLEO_AQUI')){
+    throw new Error('Falta configurar el GID de la pestaña Goleo en el archivo index.html');
+  }
   return fetchCSV(GOLEO_URL, 'la pestaña Goleo');
 }
 
