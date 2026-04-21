@@ -83,6 +83,26 @@
   .champion-banner .name{font-size:22px;font-weight:700;margin-top:6px}
   .alert{background:rgba(226,86,86,0.08);border:1px solid rgba(226,86,86,0.3);border-radius:10px;padding:14px;margin:14px 0;color:#ffb3b3;font-size:14px}
   .alert.info{background:rgba(74,163,255,0.08);border-color:rgba(74,163,255,0.3);color:#aed4ff}
+
+  .goleo-hero{display:grid;grid-template-columns:minmax(280px,1.1fr) minmax(320px,1.9fr);gap:16px;align-items:start}
+  @media (max-width:780px){.goleo-hero{grid-template-columns:1fr}}
+  .goleo-leader{background:linear-gradient(135deg,#221d0d,#171a20);border:1px solid rgba(212,175,55,0.4);border-radius:16px;padding:22px;box-shadow:0 10px 24px rgba(0,0,0,.28)}
+  .goleo-leader .mini{color:var(--muted);font-size:12px;letter-spacing:1px;text-transform:uppercase}
+  .goleo-leader .title{font-family:'Bebas Neue',sans-serif;letter-spacing:4px;color:var(--gold);font-size:28px;line-height:1;margin-top:8px}
+  .goleo-leader .player{font-size:28px;font-weight:700;margin-top:10px}
+  .goleo-leader .team{color:var(--muted);font-size:15px;margin-top:4px}
+  .goleo-leader .goals{margin-top:16px;display:inline-flex;align-items:baseline;gap:8px;background:#0d0f12;border:1px solid var(--border);border-radius:999px;padding:10px 16px}
+  .goleo-leader .goals strong{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:1px;color:var(--gold);line-height:1}
+  .goleo-leader .goals span{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:1px}
+  .goleo-note{margin-top:10px;color:var(--muted);font-size:12px}
+  table.goleo-table{width:100%;border-collapse:collapse;font-size:14px;min-width:520px}
+  table.goleo-table thead th{background:#0d0f12;color:var(--gold);font-family:'Bebas Neue',sans-serif;letter-spacing:1px;font-weight:400;font-size:14px;padding:12px 10px;text-align:center;border-bottom:1px solid var(--border)}
+  table.goleo-table thead th.player-col, table.goleo-table thead th.team-col{text-align:left}
+  table.goleo-table tbody td{padding:11px 10px;text-align:center;border-bottom:1px solid var(--border)}
+  table.goleo-table tbody td.player-col, table.goleo-table tbody td.team-col{text-align:left}
+  table.goleo-table tbody td.rank{font-family:'Bebas Neue',sans-serif;color:var(--gold);font-size:20px;width:44px}
+  table.goleo-table tbody td.goals{font-weight:700;color:var(--gold)}
+
   footer{text-align:center;color:var(--muted);font-size:12px;padding:24px 16px;border-top:1px solid var(--border);margin-top:24px}
   footer .refresh{background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:999px;font-family:inherit;font-size:12px;cursor:pointer;margin-top:8px}
 </style>
@@ -99,6 +119,7 @@
   <button class="active" data-tab="inicio">Inicio</button>
   <button data-tab="calendario">Calendario</button>
   <button data-tab="tabla">Tabla General</button>
+  <button data-tab="goleo">Campeón de goleo</button>
   <button data-tab="liguilla">Liguilla</button>
 </nav>
 
@@ -155,6 +176,23 @@
   </section>
 
 
+  <section id="goleo" class="tab-panel">
+    <h3 class="section-title">Campeón de goleo</h3>
+    <div class="goleo-hero">
+      <div id="goleoLeader"></div>
+      <div class="table-wrap">
+        <table class="goleo-table">
+          <thead>
+            <tr><th>#</th><th class="player-col">Jugador</th><th class="team-col">Equipo</th><th>Goles</th></tr>
+          </thead>
+          <tbody id="goleoBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <p class="legend">Top 10 de goleadores de la fase regular.</p>
+  </section>
+
+
   <section id="liguilla" class="tab-panel">
     <h3 class="section-title">Semifinales</h3>
     <div id="bracketContainer" class="bracket"></div>
@@ -174,10 +212,13 @@
 const SHEET_ID = "1EBiMSjrKrqI0zCrbc3XDc901jVCcSO8EO9jfjk4bTiU";
 const PARTIDOS_GID = "402566664"; // pestaña Partidos
 const LIGUILLA_GID = "837279737"; // pestaña Liguilla
+const GOLEO_SHEET_NAME = "Goleo"; // nueva hoja para capturar goleadores
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${PARTIDOS_GID}`;
 const LIGUILLA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${LIGUILLA_GID}`;
+const GOLEO_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(GOLEO_SHEET_NAME)}`;
 
-let DATA = { partidos: [], equipos: [], liguilla: { sf1:{gl:null,gv:null}, sf2:{gl:null,gv:null}, final:{gl:null,gv:null} } };
+let DATA = { partidos: [], equipos: [], goleo: [], liguilla: { sf1:{gl:null,gv:null}, sf2:{gl:null,gv:null}, final:{gl:null,gv:null} } };
+let selectedJornada = null;
 
 function parseCSV(text){
   const rows = [];
@@ -233,6 +274,10 @@ async function fetchLiguilla(){
   return fetchCSV(LIGUILLA_URL, 'la pestaña Liguilla');
 }
 
+async function fetchGoleo(){
+  return fetchCSV(GOLEO_URL, 'la pestaña Goleo');
+}
+
 function parseGoles(v){
   if(v === undefined || v === null) return null;
   const s = String(v).replace(/\u00A0/g, ' ').trim();
@@ -277,6 +322,46 @@ function parsePartidos(rows){
     });
   }
   return out;
+}
+
+
+function parseGoleo(rows){
+  if(!rows || !rows.length) return [];
+
+  let header = null, headerIdx = -1;
+  for(let i=0;i<rows.length;i++){
+    const cells = (rows[i] || []).map(c => normalizarTexto(c));
+    if(cells.includes('jugador') && cells.includes('equipo') && cells.includes('goles')){
+      header = cells; headerIdx = i; break;
+    }
+  }
+  if(!header) throw new Error('No encontré los encabezados Jugador / Equipo / Goles en la pestaña Goleo.');
+
+  const idx = matcher => header.findIndex(h => matcher(h));
+  const cJugador = idx(h => h === 'jugador' || h === 'nombre');
+  const cEquipo = idx(h => h === 'equipo');
+  const cGoles = idx(h => h === 'goles' || h === 'goles totales');
+
+  const out = [];
+  for(let i = headerIdx + 1; i < rows.length; i++){
+    const r = rows[i] || [];
+    const jugador = String(r[cJugador] || '').trim();
+    const equipo = String(r[cEquipo] || '').trim();
+    const goles = parseGoles(r[cGoles]);
+
+    if(!jugador && !equipo && goles === null) continue;
+    if(!jugador || goles === null) continue;
+
+    out.push({
+      jugador,
+      equipo: equipo || 'Sin equipo',
+      goles
+    });
+  }
+
+  return out
+    .sort((a,b) => b.goles - a.goles || a.jugador.localeCompare(b.jugador, 'es') || a.equipo.localeCompare(b.equipo, 'es'))
+    .slice(0, 10);
 }
 
 function normalizarTexto(s){
@@ -498,17 +583,27 @@ function renderCalendario(){
 
   const jornadas = [...new Set(DATA.partidos.map(p => p.jornada))].sort((a,b) => a-b);
   if(!jornadas.length){
+    selectedJornada = null;
     contEl.innerHTML = '<div class="alert info">No encontré partidos en la pestaña Partidos.</div>';
     return;
   }
 
-  let activeJor = jornadas[0];
-  for(const j of jornadas){
-    const partidos = DATA.partidos.filter(p => p.jornada === j);
-    const conResultado = partidos.filter(p => p.gl !== null && p.gv !== null).length;
-    if(conResultado < partidos.length){ activeJor = j; break; }
-    activeJor = j;
+  let activeJor = selectedJornada;
+  if(!jornadas.includes(activeJor)){
+    activeJor = null;
   }
+
+  if(activeJor === null){
+    activeJor = jornadas[0];
+    for(const j of jornadas){
+      const partidos = DATA.partidos.filter(p => p.jornada === j);
+      const conResultado = partidos.filter(p => p.gl !== null && p.gv !== null).length;
+      if(conResultado < partidos.length){ activeJor = j; break; }
+      activeJor = j;
+    }
+  }
+
+  selectedJornada = activeJor;
 
   jornadas.forEach(j => {
     const btn = document.createElement('button');
@@ -516,6 +611,7 @@ function renderCalendario(){
     btn.dataset.jor = j;
     if(j === activeJor) btn.classList.add('active');
     btn.onclick = () => {
+      selectedJornada = j;
       document.querySelectorAll('#jornadaTabs button').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.jornada-block').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
@@ -555,6 +651,45 @@ function renderTabla(){
       <td class="pts">${t.pts}</td>
     `;
     tbody.appendChild(tr);
+  });
+}
+
+
+function renderGoleo(){
+  const leaderEl = document.getElementById('goleoLeader');
+  const body = document.getElementById('goleoBody');
+  if(!leaderEl || !body) return;
+
+  body.innerHTML = '';
+  const lista = DATA.goleo || [];
+
+  if(!lista.length){
+    leaderEl.innerHTML = '<div class="goleo-leader"><div class="mini">Tabla de goleo</div><div class="title">Sin datos</div><div class="goleo-note">Carga la hoja Goleo en tu Google Sheets para mostrar el top 10.</div></div>';
+    body.innerHTML = '<tr><td colspan="4" style="padding:24px">Aún no hay goleadores capturados.</td></tr>';
+    return;
+  }
+
+  const lider = lista[0];
+  leaderEl.innerHTML = `
+    <div class="goleo-leader">
+      <div class="mini">Líder actual de goleo</div>
+      <div class="title">Campeón de goleo</div>
+      <div class="player">${escapeHtml(lider.jugador)}</div>
+      <div class="team">${escapeHtml(lider.equipo)}</div>
+      <div class="goals"><strong>${lider.goles}</strong><span>goles</span></div>
+      <div class="goleo-note">La tabla muestra automáticamente a los 10 mejores goleadores capturados en la hoja Goleo.</div>
+    </div>
+  `;
+
+  lista.forEach((item, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="rank">${i + 1}</td>
+      <td class="player-col">${escapeHtml(item.jugador)}</td>
+      <td class="team-col">${escapeHtml(item.equipo)}</td>
+      <td class="goals">${item.goles}</td>
+    `;
+    body.appendChild(tr);
   });
 }
 
@@ -660,13 +795,33 @@ function mostrarError(msg){
   document.getElementById('updateInfo').textContent = 'Error de conexión con Google Sheets';
   const bc = document.getElementById('bracketContainer'); if(bc) bc.innerHTML = html;
   const fc = document.getElementById('finalContainer'); if(fc) fc.innerHTML = '';
+  const gb = document.getElementById('goleoBody'); if(gb) gb.innerHTML = `<tr><td colspan="4" style="padding:24px">${html}</td></tr>`;
+  const gl = document.getElementById('goleoLeader'); if(gl) gl.innerHTML = '';
 }
 
 async function cargarDatos(){
   try{
-    const rowsPartidos = await fetchPartidos();
+    const [rowsPartidos, rowsGoleo] = await Promise.all([
+      fetchPartidos(),
+      fetchGoleo().catch(err => ({ __error: err }))
+    ]);
+
     DATA.partidos = parsePartidos(rowsPartidos);
     DATA.equipos = derivarEquipos(DATA.partidos);
+
+    let goleoStatus = 'Goleo cargado';
+    if(rowsGoleo && rowsGoleo.__error){
+      DATA.goleo = [];
+      goleoStatus = 'Goleo no leído: ' + (rowsGoleo.__error.message || 'error');
+    } else {
+      try{
+        DATA.goleo = parseGoleo(rowsGoleo);
+        if(!DATA.goleo.length) goleoStatus = 'Goleo conectado, pero aún sin jugadores capturados';
+      }catch(errGoleo){
+        DATA.goleo = [];
+        goleoStatus = 'Goleo no reconocido: ' + (errGoleo.message || 'error');
+      }
+    }
 
     let liguillaStatus = 'Liguilla conectada';
     try{
@@ -679,10 +834,12 @@ async function cargarDatos(){
       liguillaStatus = 'Liguilla no leída: ' + (errLiguilla.message || 'error');
       console.warn(errLiguilla);
     }
+
     renderCalendario();
     renderTabla();
+    renderGoleo();
     renderLiguilla();
-    document.getElementById('updateInfo').textContent = `Datos actualizados: ${new Date().toLocaleString('es-MX')} · Partidos cargados: ${DATA.partidos.length} · ${liguillaStatus}`;
+    document.getElementById('updateInfo').textContent = `Datos actualizados: ${new Date().toLocaleString('es-MX')} · Partidos cargados: ${DATA.partidos.length} · ${goleoStatus} · ${liguillaStatus}`;
   }catch(err){
     console.error(err);
     mostrarError(err.message || 'Error desconocido');
