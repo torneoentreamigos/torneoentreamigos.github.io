@@ -47,6 +47,7 @@
   .match-card .score{display:flex;align-items:center;gap:8px;font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;color:var(--gold);background:#0d0f12;border:1px solid var(--border);border-radius:8px;padding:4px 12px;min-width:90px;justify-content:center}
   .match-card .score.pending{color:var(--muted);font-size:14px;font-family:'Inter',sans-serif;font-weight:600;letter-spacing:0}
   .match-card .meta{grid-column:1/-1;color:var(--muted);font-size:12px;text-align:center;border-top:1px solid var(--border);padding-top:8px;margin-top:4px}
+  .match-card .cancha-line{display:block;margin-top:4px;color:var(--gold);font-weight:700;font-size:13px}
   .winner{color:var(--gold)} .loser{color:var(--muted)}
   .table-wrap{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;overflow:hidden;overflow-x:auto}
   table.standings{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
@@ -574,9 +575,8 @@ function renderMatchCard(p, cancha){
       <div class="badge">${initials(p.visitante)}</div>
     </div>
     <div class="meta">
-      ${p.hora ? '🕗 ' + escapeHtml(p.hora) : ''}
-      ${cancha ? '<br>📍 ' + escapeHtml(cancha) : ''}
-      ${played ? '' : ' · pendiente'}
+      ${p.hora ? '🕗 ' + escapeHtml(p.hora) : ''}${played ? '' : ' · pendiente'}
+      ${cancha ? '<span class="cancha-line">📍 ' + escapeHtml(cancha) + '</span>' : ''}
     </div>
   `;
   return card;
@@ -631,15 +631,22 @@ function renderCalendario(){
     block.id = 'jor-' + j;
     const partidosJornada = DATA.partidos.filter(p => p.jornada === j);
     const conteoHora = {};
-    partidosJornada.forEach(p => {
-      const horaKey = p.hora || '__sin_hora__';
-      if(!conteoHora[horaKey]) conteoHora[horaKey] = 0;
-      conteoHora[horaKey]++;
+    let contadorSinHora = 0;
 
+    partidosJornada.forEach(p => {
       let cancha = '';
-      if(p.hora){
-        if(conteoHora[horaKey] === 1) cancha = 'Cancha escuela';
-        else if(conteoHora[horaKey] === 2) cancha = 'Cancha parque';
+
+      if(p.hora && p.hora.trim()){
+        const horaKey = p.hora.trim();
+        if(!conteoHora[horaKey]) conteoHora[horaKey] = 0;
+        conteoHora[horaKey]++;
+
+        if(conteoHora[horaKey] % 2 === 1) cancha = 'Cancha escuela';
+        else cancha = 'Cancha parque';
+      } else {
+        contadorSinHora++;
+        if(contadorSinHora % 2 === 1) cancha = 'Cancha escuela';
+        else cancha = 'Cancha parque';
       }
 
       block.appendChild(renderMatchCard(p, cancha));
