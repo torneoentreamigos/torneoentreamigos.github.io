@@ -555,7 +555,7 @@ function calcularTabla(){
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function initials(name){ return name.split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
 
-function renderMatchCard(p){
+function renderMatchCard(p, cancha){
   const card = document.createElement('div');
   const played = p.gl !== null && p.gv !== null;
   card.className = 'match-card' + (played ? ' played' : '');
@@ -573,7 +573,11 @@ function renderMatchCard(p){
       <div>${escapeHtml(p.visitante)}</div>
       <div class="badge">${initials(p.visitante)}</div>
     </div>
-    <div class="meta">${p.hora ? '🕗 ' + escapeHtml(p.hora) : ''}${played ? '' : ' · pendiente'}</div>
+    <div class="meta">
+      ${p.hora ? '🕗 ' + escapeHtml(p.hora) : ''}
+      ${cancha ? '<br>📍 ' + escapeHtml(cancha) : ''}
+      ${played ? '' : ' · pendiente'}
+    </div>
   `;
   return card;
 }
@@ -625,7 +629,21 @@ function renderCalendario(){
     const block = document.createElement('div');
     block.className = 'jornada-block' + (j === activeJor ? ' active' : '');
     block.id = 'jor-' + j;
-    DATA.partidos.filter(p => p.jornada === j).forEach(p => block.appendChild(renderMatchCard(p)));
+    const partidosJornada = DATA.partidos.filter(p => p.jornada === j);
+    const conteoHora = {};
+    partidosJornada.forEach(p => {
+      const horaKey = p.hora || '__sin_hora__';
+      if(!conteoHora[horaKey]) conteoHora[horaKey] = 0;
+      conteoHora[horaKey]++;
+
+      let cancha = '';
+      if(p.hora){
+        if(conteoHora[horaKey] === 1) cancha = 'Cancha escuela';
+        else if(conteoHora[horaKey] === 2) cancha = 'Cancha parque';
+      }
+
+      block.appendChild(renderMatchCard(p, cancha));
+    });
     contEl.appendChild(block);
   });
 }
