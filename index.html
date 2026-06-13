@@ -443,32 +443,22 @@ function normalizarTexto(s){
 }
 
 function detectarEtapaLiguilla(texto){
-  const t = normalizarTexto(texto)
-    .replace(/[-_:]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-
+  // Normaliza y deja SOLO letras y números, eliminando espacios, guiones y
+  // cualquier carácter invisible (espacios de ancho cero, etc). Así
+  // "Semifinal 1", "Semi-final 1", "SF 1" o "semifinal⠀1" con basura oculta
+  // quedan todos como "semifinal1" y se reconocen igual.
+  const t = normalizarTexto(texto).replace(/[^a-z0-9]/g, '');
   if(!t) return null;
 
-  if(
-    t.includes('semifinal 1') ||
-    t.includes('semi final 1') ||
-    t.includes('semi 1') ||
-    t.includes('sf 1') ||
-    t === 'sf1' ||
-    t === 's1'
-  ) return 'sf1';
+  const esSemi = t.includes('semi') || /^sf\d/.test(t) || /^s\d$/.test(t);
 
-  if(
-    t.includes('semifinal 2') ||
-    t.includes('semi final 2') ||
-    t.includes('semi 2') ||
-    t.includes('sf 2') ||
-    t === 'sf2' ||
-    t === 's2'
-  ) return 'sf2';
+  if(esSemi){
+    if(t.includes('2') || t.includes('dos')) return 'sf2';
+    if(t.includes('1') || t.includes('uno')) return 'sf1';
+    return null;
+  }
 
-  if(t === 'final' || t.includes('gran final')) return 'final';
+  if(t === 'final' || t.includes('granfinal') || t.includes('final')) return 'final';
 
   return null;
 }
