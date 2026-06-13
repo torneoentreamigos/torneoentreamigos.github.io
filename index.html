@@ -265,7 +265,7 @@ const GOLEO_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?for
 
 // ▼▼▼ PEGA AQUÍ EL GID DE LA NUEVA PESTAÑA "Liguilla Plata" ▼▼▼
 // (sustituye PEGA_AQUI_GID_PLATA por el número del gid que verás en la URL de la pestaña nueva)
-const LIGUILLA_PLATA_GID = "PEGA_AQUI_GID_PLATA"; // pestaña Liguilla PLATA
+const LIGUILLA_PLATA_GID = "1072725470"; // pestaña Liguilla PLATA
 const LIGUILLA_PLATA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${LIGUILLA_PLATA_GID}`;
 
 // Jornadas que NO se jugarán (se pasa directo a liguilla). Se ocultan del calendario.
@@ -557,11 +557,25 @@ function parseLiguilla(rows){
       }
 
       if(tieneColumnasClaras){
-        // Caso normal: leer ÚNICAMENTE las celdas de esas dos columnas.
-        // Si están vacías, el marcador queda pendiente (null). No se adivina
-        // nada de filas vecinas, así una etapa nunca "hereda" el marcador de otra.
+        // Caso normal: leer las celdas de "Goles Local" y "Goles Visitante".
         marcadores.gl = parseGoles(r[cGL]);
         marcadores.gv = parseGoles(r[cGV]);
+
+        // Fallbacks SEGUROS (solo leen la PROPIA fila de esta etapa, nunca las vecinas):
+        // 1) Marcador escrito junto en una sola celda, p.ej. "2-1".
+        if(marcadores.gl === null || marcadores.gv === null){
+          const combinado = extraerMarcadoresDesdeTexto(r[cGL]) || extraerMarcadoresDesdeTexto(r[cGV]);
+          if(combinado){
+            if(marcadores.gl === null) marcadores.gl = combinado.gl;
+            if(marcadores.gv === null) marcadores.gv = combinado.gv;
+          }
+        }
+        // 2) Números puestos en otras columnas de la misma fila.
+        if(marcadores.gl === null && marcadores.gv === null){
+          const desdeFila = extraerMarcadoresDesdeFila(r, Math.max(cEtapa + 1, 0));
+          marcadores.gl = desdeFila.gl;
+          marcadores.gv = desdeFila.gv;
+        }
       } else {
         // Hoja sin columnas claras: deducir solo de la propia fila de esa etapa.
         if(cGL >= 0) marcadores.gl = parseGoles(r[cGL]);
