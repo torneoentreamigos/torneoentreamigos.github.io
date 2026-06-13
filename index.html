@@ -450,6 +450,11 @@ function detectarEtapaLiguilla(texto){
   const t = base.replace(/[^a-z0-9]/g, '');
   if(!t) return null;
 
+  // Una etiqueta de etapa es CORTA ("Semifinal 1", "Final"...). Si es una
+  // frase larga (una nota o explicación que de casualidad menciona "semifinal",
+  // "1" o "2"), NO es una fila de resultado y se ignora.
+  if(t.length > 20) return null;
+
   const esSemi = t.includes('semi') || /^sf\d?/.test(t) || /^s\d$/.test(t);
 
   if(esSemi){
@@ -540,6 +545,15 @@ function parseLiguilla(rows){
 
     for(let i = headerIdx + 1; i < rows.length; i++){
       const r = rows[i] || [];
+
+      // Fin de la tabla: si la fila está totalmente vacía en Etapa y marcadores,
+      // dejamos de leer (así nunca se procesan las notas que van más abajo).
+      const limpiar = s => normalizarTexto(s).replace(/[^a-z0-9]/g, '');
+      const vaciaEtapa = limpiar(r[cEtapa]) === '';
+      const vaciaGL = cGL < 0 || String(r[cGL] || '').trim() === '';
+      const vaciaGV = cGV < 0 || String(r[cGV] || '').trim() === '';
+      if(vaciaEtapa && vaciaGL && vaciaGV) break;
+
       const tipo = detectarEtapaLiguilla(r[cEtapa]);
       if(!tipo) continue;
 
