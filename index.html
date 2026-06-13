@@ -65,6 +65,8 @@
   @media (max-width:640px){.bracket{grid-template-columns:1fr}}
   .bracket-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:16px}
   .bracket-card h4{font-family:'Bebas Neue',sans-serif;letter-spacing:3px;color:var(--gold);font-size:18px;margin-bottom:12px;text-align:center}
+  .bracket-sched{text-align:center;color:var(--muted);font-size:12px;font-weight:600;margin:-6px 0 12px}
+  .final-sched{text-align:center;color:var(--muted);font-size:13px;font-weight:600;margin:-6px 0 14px}
   .bracket-team{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#0d0f12;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-weight:600}
   .bracket-team .nm{font-size:14px}
   .bracket-team .sc{font-family:'Bebas Neue',sans-serif;color:var(--gold);font-size:22px;min-width:32px;text-align:center}
@@ -263,7 +265,7 @@ const GOLEO_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?for
 
 // ▼▼▼ PEGA AQUÍ EL GID DE LA NUEVA PESTAÑA "Liguilla Plata" ▼▼▼
 // (sustituye PEGA_AQUI_GID_PLATA por el número del gid que verás en la URL de la pestaña nueva)
-const LIGUILLA_PLATA_GID = "1072725470"; // pestaña Liguilla PLATA
+const LIGUILLA_PLATA_GID = "PEGA_AQUI_GID_PLATA"; // pestaña Liguilla PLATA
 const LIGUILLA_PLATA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${LIGUILLA_PLATA_GID}`;
 
 // Jornadas que NO se jugarán (se pasa directo a liguilla). Se ocultan del calendario.
@@ -539,35 +541,47 @@ function parseLiguilla(rows){
     const cGV = header.findIndex(h => h === 'goles visitante' || h === 'gv' || h === 'marcador visitante');
     const cGanador = header.findIndex(h => h === 'ganador' || h === 'avanza' || h === 'gana en penales' || h === 'penales' || h === 'ganador penales');
 
+    // ¿La hoja tiene columnas claras "Goles Local" y "Goles Visitante"?
+    const tieneColumnasClaras = cGL >= 0 && cGV >= 0;
+
     for(let i = headerIdx + 1; i < rows.length; i++){
       const r = rows[i] || [];
       const etapaKey = detectarEtapaLiguilla(r[cEtapa]);
       if(!etapaKey) continue;
 
       let marcadores = { gl: null, gv: null, ganador: null };
-      if(cGL >= 0) marcadores.gl = parseGoles(r[cGL]);
-      if(cGV >= 0) marcadores.gv = parseGoles(r[cGV]);
+
       if(cGanador >= 0){
         const g = String(r[cGanador] || '').trim();
         marcadores.ganador = g || null;
       }
 
-      if(marcadores.gl === null || marcadores.gv === null){
-        const desdeFila = extraerMarcadoresDesdeFila(r, Math.max(cEtapa + 1, 0));
-        if(marcadores.gl === null) marcadores.gl = desdeFila.gl;
-        if(marcadores.gv === null) marcadores.gv = desdeFila.gv;
-      }
-
-      if(marcadores.gl === null || marcadores.gv === null){
-        const cerca = extraerMarcadoresCercanos(rows, i, Math.max(cEtapa + 1, 0));
-        if(marcadores.gl === null) marcadores.gl = cerca.gl;
-        if(marcadores.gv === null) marcadores.gv = cerca.gv;
+      if(tieneColumnasClaras){
+        // Caso normal: leer ÚNICAMENTE las celdas de esas dos columnas.
+        // Si están vacías, el marcador queda pendiente (null). No se adivina
+        // nada de filas vecinas, así una etapa nunca "hereda" el marcador de otra.
+        marcadores.gl = parseGoles(r[cGL]);
+        marcadores.gv = parseGoles(r[cGV]);
+      } else {
+        // Hoja sin columnas claras: deducir solo de la propia fila de esa etapa.
+        if(cGL >= 0) marcadores.gl = parseGoles(r[cGL]);
+        if(cGV >= 0) marcadores.gv = parseGoles(r[cGV]);
+        if(marcadores.gl === null || marcadores.gv === null){
+          const desdeFila = extraerMarcadoresDesdeFila(r, Math.max(cEtapa + 1, 0));
+          if(marcadores.gl === null) marcadores.gl = desdeFila.gl;
+          if(marcadores.gv === null) marcadores.gv = desdeFila.gv;
+        }
       }
 
       out[etapaKey] = marcadores;
     }
+
+    // Con columnas claras ya terminamos. NO ejecutamos el barrido global
+    // (que era la causa de que la Final tomara el marcador de la Semifinal 2).
+    if(tieneColumnasClaras) return out;
   }
 
+  // Rescate SOLO para hojas sin encabezados claros: barrido buscando etapas.
   for(let i = 0; i < rows.length; i++){
     const r = rows[i] || [];
     for(let j = 0; j < r.length; j++){
@@ -582,13 +596,8 @@ function parseLiguilla(rows){
         const enTexto = extraerMarcadoresDesdeTexto(r[j]);
         if(enTexto) marcadores = enTexto;
       }
-      if(marcadores.gl === null || marcadores.gv === null){
-        const cerca = extraerMarcadoresCercanos(rows, i, j + 1);
-        if(marcadores.gl === null) marcadores.gl = cerca.gl;
-        if(marcadores.gv === null) marcadores.gv = cerca.gv;
-      }
 
-      out[etapaKey] = marcadores;
+      out[etapaKey] = { gl: marcadores.gl, gv: marcadores.gv, ganador: (out[etapaKey] && out[etapaKey].ganador) || null };
       break;
     }
   }
@@ -837,8 +846,14 @@ function renderBracketCard(titulo, p, sub){
     statusLine = '<strong>Empate — se define por penales</strong>';
   }
 
+  const schedParts = [];
+  if(p.hora) schedParts.push('🕗 ' + escapeHtml(p.hora));
+  if(p.cancha) schedParts.push('📍 ' + escapeHtml(p.cancha));
+  const schedLine = schedParts.length ? `<div class="bracket-sched">${schedParts.join(' · ')}</div>` : '';
+
   div.innerHTML = `
     <h4>${titulo}</h4>
+    ${schedLine}
     <div class="bracket-team ${wL?'win':''} ${played && !wL?'lose':''}">
       <span class="nm">${escapeHtml(p.local)}</span>
       <span class="sc">${played?p.gl:'–'}</span>
@@ -871,8 +886,14 @@ function renderFinalCard(localObj, visitObj, campeon, opts){
   if(ganadorNombre) campeonTxt = ganadorNombre + (empate ? ' (penales)' : '');
   else if(empate) campeonTxt = 'Empate — se define por penales';
 
+  const schedParts = [];
+  if(opts.hora) schedParts.push('🕗 ' + escapeHtml(opts.hora));
+  if(opts.cancha) schedParts.push('📍 ' + escapeHtml(opts.cancha));
+  const schedLine = schedParts.length ? `<div class="final-sched">${schedParts.join(' · ')}</div>` : '';
+
   div.innerHTML = `
     <h4>${titulo}</h4>
+    ${schedLine}
     <div class="final-teams">
       <div class="team-block ${localWin?'champion':''}">
         <div class="nm">${escapeHtml(localObj.nombre)}</div>
@@ -910,8 +931,8 @@ function renderLiguillaOro(tabla){
   }
 
   const L = DATA.liguilla;
-  const sf1 = { local: tabla[0].equipo, visitante: tabla[3].equipo, gl: L.sf1?.gl ?? null, gv: L.sf1?.gv ?? null, ganadorManual: L.sf1?.ganador ?? null };
-  const sf2 = { local: tabla[1].equipo, visitante: tabla[2].equipo, gl: L.sf2?.gl ?? null, gv: L.sf2?.gv ?? null, ganadorManual: L.sf2?.ganador ?? null };
+  const sf1 = { local: tabla[0].equipo, visitante: tabla[3].equipo, gl: L.sf1?.gl ?? null, gv: L.sf1?.gv ?? null, ganadorManual: L.sf1?.ganador ?? null, hora: '9:00 PM', cancha: 'Cancha parque' };
+  const sf2 = { local: tabla[1].equipo, visitante: tabla[2].equipo, gl: L.sf2?.gl ?? null, gv: L.sf2?.gv ?? null, ganadorManual: L.sf2?.ganador ?? null, hora: '8:00 PM', cancha: 'Cancha escuela' };
 
   cont.appendChild(renderBracketCard('Semifinal 1', sf1, '1° vs 4° · '));
   cont.appendChild(renderBracketCard('Semifinal 2', sf2, '2° vs 3° · '));
@@ -929,7 +950,7 @@ function renderLiguillaOro(tabla){
     { nombre: finalLocal, goles: finalGL },
     { nombre: finalVisit, goles: finalGV },
     campeon,
-    { titulo: '🏆 GRAN FINAL ORO', etiquetaCampeon: 'CAMPEÓN ORO · CLAUSURA 2026' }
+    { titulo: '🏆 GRAN FINAL ORO', etiquetaCampeon: 'CAMPEÓN ORO · CLAUSURA 2026', hora: '9:00 PM', cancha: 'Cancha escuela' }
   ));
 }
 
@@ -946,8 +967,8 @@ function renderLiguillaPlata(tabla){
   }
 
   const L = DATA.liguillaPlata;
-  const sf1 = { local: tabla[4].equipo, visitante: tabla[7].equipo, gl: L.sf1?.gl ?? null, gv: L.sf1?.gv ?? null, ganadorManual: L.sf1?.ganador ?? null };
-  const sf2 = { local: tabla[5].equipo, visitante: tabla[6].equipo, gl: L.sf2?.gl ?? null, gv: L.sf2?.gv ?? null, ganadorManual: L.sf2?.ganador ?? null };
+  const sf1 = { local: tabla[4].equipo, visitante: tabla[7].equipo, gl: L.sf1?.gl ?? null, gv: L.sf1?.gv ?? null, ganadorManual: L.sf1?.ganador ?? null, hora: '9:00 PM', cancha: 'Cancha escuela' };
+  const sf2 = { local: tabla[5].equipo, visitante: tabla[6].equipo, gl: L.sf2?.gl ?? null, gv: L.sf2?.gv ?? null, ganadorManual: L.sf2?.ganador ?? null, hora: '8:00 PM', cancha: 'Cancha parque' };
 
   cont.appendChild(renderBracketCard('Semifinal 1', sf1, '5° vs 8° · '));
   cont.appendChild(renderBracketCard('Semifinal 2', sf2, '6° vs 7° · '));
@@ -965,7 +986,7 @@ function renderLiguillaPlata(tabla){
     { nombre: finalLocal, goles: finalGL },
     { nombre: finalVisit, goles: finalGV },
     campeon,
-    { titulo: '🥈 GRAN FINAL PLATA', etiquetaCampeon: 'CAMPEÓN PLATA · CLAUSURA 2026' }
+    { titulo: '🥈 GRAN FINAL PLATA', etiquetaCampeon: 'CAMPEÓN PLATA · CLAUSURA 2026', hora: '8:00 PM', cancha: 'Cancha escuela' }
   ));
 }
 
