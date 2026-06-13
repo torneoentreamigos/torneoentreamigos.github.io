@@ -443,22 +443,24 @@ function normalizarTexto(s){
 }
 
 function detectarEtapaLiguilla(texto){
-  // Normaliza y deja SOLO letras y números, eliminando espacios, guiones y
-  // cualquier carácter invisible (espacios de ancho cero, etc). Así
-  // "Semifinal 1", "Semi-final 1", "SF 1" o "semifinal⠀1" con basura oculta
-  // quedan todos como "semifinal1" y se reconocen igual.
-  const t = normalizarTexto(texto).replace(/[^a-z0-9]/g, '');
+  const base = normalizarTexto(texto);
+  if(!base) return null;
+
+  // Solo letras y números (quita espacios, guiones y caracteres invisibles).
+  const t = base.replace(/[^a-z0-9]/g, '');
   if(!t) return null;
 
-  const esSemi = t.includes('semi') || /^sf\d/.test(t) || /^s\d$/.test(t);
+  const esSemi = t.includes('semi') || /^sf\d?/.test(t) || /^s\d$/.test(t);
 
   if(esSemi){
-    if(t.includes('2') || t.includes('dos')) return 'sf2';
-    if(t.includes('1') || t.includes('uno')) return 'sf1';
-    return null;
+    // Lectura tolerante del número: NFKC convierte dígitos "raros" (p.ej. ２) a normales.
+    const compat = String(texto || '').normalize('NFKC');
+    if(/2/.test(compat) || /\bdos\b/.test(base)) return 'sf2';
+    if(/1/.test(compat) || /\buno\b/.test(base)) return 'sf1';
+    return 'semi'; // es semifinal, pero no se pudo leer el número (se asignará por orden)
   }
 
-  if(t === 'final' || t.includes('granfinal') || t.includes('final')) return 'final';
+  if(t === 'final' || t.includes('final')) return 'final';
 
   return null;
 }
@@ -534,10 +536,25 @@ function parseLiguilla(rows){
     // ¿La hoja tiene columnas claras "Goles Local" y "Goles Visitante"?
     const tieneColumnasClaras = cGL >= 0 && cGV >= 0;
 
+    const sfUsada = { sf1: false, sf2: false };
+
     for(let i = headerIdx + 1; i < rows.length; i++){
       const r = rows[i] || [];
-      const etapaKey = detectarEtapaLiguilla(r[cEtapa]);
-      if(!etapaKey) continue;
+      const tipo = detectarEtapaLiguilla(r[cEtapa]);
+      if(!tipo) continue;
+
+      // Determinar a qué etapa pertenece la fila.
+      let etapaKey;
+      if(tipo === 'final'){
+        etapaKey = 'final';
+      } else {
+        // Semifinal: usar el número si se leyó y el cupo está libre;
+        // si no, asignar a la primera semifinal disponible (por orden).
+        let key = (tipo === 'sf1' || tipo === 'sf2') ? tipo : null;
+        if(!key || sfUsada[key]) key = !sfUsada.sf1 ? 'sf1' : 'sf2';
+        sfUsada[key] = true;
+        etapaKey = key;
+      }
 
       let marcadores = { gl: null, gv: null, ganador: null };
 
@@ -586,11 +603,22 @@ function parseLiguilla(rows){
   }
 
   // Rescate SOLO para hojas sin encabezados claros: barrido buscando etapas.
+  const sfUsadaRescate = { sf1: out.sf1.gl !== null, sf2: out.sf2.gl !== null };
   for(let i = 0; i < rows.length; i++){
     const r = rows[i] || [];
     for(let j = 0; j < r.length; j++){
-      const etapaKey = detectarEtapaLiguilla(r[j]);
-      if(!etapaKey) continue;
+      const tipo = detectarEtapaLiguilla(r[j]);
+      if(!tipo) continue;
+
+      let etapaKey;
+      if(tipo === 'final'){
+        etapaKey = 'final';
+      } else {
+        let key = (tipo === 'sf1' || tipo === 'sf2') ? tipo : null;
+        if(!key || sfUsadaRescate[key]) key = !sfUsadaRescate.sf1 ? 'sf1' : 'sf2';
+        sfUsadaRescate[key] = true;
+        etapaKey = key;
+      }
 
       const actual = out[etapaKey] || { gl:null, gv:null };
       if(actual.gl !== null && actual.gv !== null) break;
