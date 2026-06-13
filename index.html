@@ -10,7 +10,7 @@
 <style>
   :root{
     --bg:#0d0f12; --bg-soft:#15181d; --bg-card:#1c2026; --border:#2a2f37;
-    --text:#eef0f4; --muted:#9aa3b2; --gold:#d4af37;
+    --text:#eef0f4; --muted:#9aa3b2; --gold:#d4af37; --silver:#c2c8d2;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;line-height:1.5}
@@ -57,6 +57,7 @@
   table.standings tbody td.team-col{text-align:left;padding-left:14px;font-weight:600}
   table.standings tbody td.pos{font-family:'Bebas Neue',sans-serif;color:var(--gold);font-size:18px;width:40px}
   table.standings tr.classifies{background:rgba(212,175,55,0.04)}
+  table.standings tr.classifies-plata{background:rgba(194,200,210,0.05)}
   table.standings td.pts{font-weight:700;color:var(--gold)}
   .legend{margin-top:10px;color:var(--muted);font-size:12px;text-align:center}
 
@@ -84,6 +85,22 @@
   .champion-banner .name{font-size:22px;font-weight:700;margin-top:6px}
   .alert{background:rgba(226,86,86,0.08);border:1px solid rgba(226,86,86,0.3);border-radius:10px;padding:14px;margin:14px 0;color:#ffb3b3;font-size:14px}
   .alert.info{background:rgba(74,163,255,0.08);border-color:rgba(74,163,255,0.3);color:#aed4ff}
+
+  /* Separación entre las dos liguillas */
+  .plata-zone{margin-top:34px;padding-top:8px;border-top:1px dashed var(--border)}
+  /* Acentos en plateado para toda la zona PLATA */
+  .section-title.plata{color:var(--silver);border-bottom-color:rgba(194,200,210,0.3)}
+  .plata-zone .bracket-card h4{color:var(--silver)}
+  .plata-zone .bracket-team .sc{color:var(--silver)}
+  .plata-zone .bracket-team.win{border-color:var(--silver)}
+  .plata-zone .bracket-card .winner-line strong{color:var(--silver)}
+  .plata-zone .final-card{border-color:var(--silver);box-shadow:0 0 24px rgba(194,200,210,0.12)}
+  .plata-zone .final-card h4{color:var(--silver)}
+  .plata-zone .final-teams .team-block .sc{color:var(--silver)}
+  .plata-zone .final-teams .team-block.champion{border-color:var(--silver);box-shadow:inset 0 0 16px rgba(194,200,210,0.15)}
+  .plata-zone .vs{color:var(--silver)}
+  .plata-zone .champion-banner{background:linear-gradient(90deg,transparent,rgba(194,200,210,0.18),transparent);border-color:rgba(194,200,210,0.3)}
+  .plata-zone .champion-banner .label{color:var(--silver)}
 
   .goleo-hero{display:grid;grid-template-columns:minmax(280px,1.1fr) minmax(320px,1.9fr);gap:16px;align-items:start}
   @media (max-width:780px){.goleo-hero{grid-template-columns:1fr}}
@@ -129,14 +146,22 @@
     <div class="flyer-wrap"><img src="flyer.jpg" alt="Flyer del torneo" onerror="this.style.display='none'"></div>
     <h3 class="section-title">Información del torneo</h3>
     <div class="info-grid">
-      <div class="info-card"><div class="label">📅 Día</div><div class="value">Lunes</div><div class="sub">7 jornadas</div></div>
+      <div class="info-card"><div class="label">📅 Día</div><div class="value">Lunes</div><div class="sub">5 jornadas + Liguilla</div></div>
       <div class="info-card"><div class="label">🕗 Horarios</div><div class="value">8:00 PM · 9:00 PM</div><div class="sub">1 hora por partido</div></div>
       <div class="info-card"><div class="label">📍 Sede</div><div class="value">Cancha Emiliano Zapata Norte</div><div class="sub">Cancha de pasto · Fut 8</div></div>
-      <div class="info-card"><div class="label">🏆 1er Lugar</div><div class="value">$3,000</div></div>
-      <div class="info-card"><div class="label">🥈 2do Lugar</div><div class="value">$2,000</div></div>
+      <div class="info-card"><div class="label">🥇 1er Lugar ORO</div><div class="value">$3,000</div><div class="sub">Solo liguilla ORO</div></div>
+      <div class="info-card"><div class="label">🥈 2do Lugar ORO</div><div class="value">$2,000</div><div class="sub">Solo liguilla ORO</div></div>
+      <div class="info-card"><div class="label">🥈 Liguilla PLATA</div><div class="value">Sin premio</div><div class="sub">Solo por jugar (5° a 8°)</div></div>
       <div class="info-card"><div class="label">💰 Inscripción</div><div class="value">$1,000 MXN</div><div class="sub">por equipo</div></div>
       <div class="info-card"><div class="label">🏁 Arbitraje</div><div class="value">$250 MXN</div><div class="sub">por partido</div></div>
       <div class="info-card"><div class="label">👥 Cupo</div><div class="value">Limitado a 8 equipos</div></div>
+      <div class="info-card" style="grid-column:1/-1">
+        <div class="label">🏆 Formato de Liguilla</div>
+        <div class="value" style="font-size:15px;font-weight:600;line-height:1.7">
+          🥇 <strong style="color:var(--gold)">ORO</strong> — Semifinales: 1° vs 4° y 2° vs 3°. Los ganadores juegan la Final ORO (con premio).<br>
+          🥈 <strong style="color:var(--silver)">PLATA</strong> — Semifinales: 5° vs 8° y 6° vs 7°. Los ganadores juegan la Final PLATA (solo por jugar).
+        </div>
+      </div>
     </div>
   
     <h3 class="section-title">Reglas del torneo</h3>
@@ -173,7 +198,7 @@
         <tbody id="standingsBody"></tbody>
       </table>
     </div>
-    <p class="legend">Zona de clasificación a semifinales (1° a 4°)</p>
+    <p class="legend">🥇 Zona ORO: 1° a 4° (semifinales con premio) &nbsp;·&nbsp; 🥈 Zona PLATA: 5° a 8° (semifinales sin premio)</p>
   </section>
 
 
@@ -195,11 +220,29 @@
 
 
   <section id="liguilla" class="tab-panel">
-    <h3 class="section-title">Semifinales</h3>
-    <div id="bracketContainer" class="bracket"></div>
+    <div class="alert info" style="margin-top:0">
+      🏆 El torneo pasa directo a la <strong>Liguilla</strong>. Se juegan <strong>dos liguillas</strong>:
+      la <strong style="color:var(--gold)">ORO</strong> (1° a 4° de la tabla, con premio económico) y la
+      <strong style="color:var(--silver)">PLATA</strong> (5° a 8°, solo por jugar, sin premio).
+    </div>
 
-    <h3 class="section-title">Final</h3>
-    <div id="finalContainer"></div>
+    <div class="oro-zone">
+      <h3 class="section-title">🥇 LIGUILLA ORO · Semifinales</h3>
+      <p class="legend" style="margin:0 0 12px;text-align:left">1° vs 4° &nbsp;·&nbsp; 2° vs 3°. Los ganadores juegan la Final ORO. <strong style="color:var(--gold)">Premios: 1er lugar $3,000 · 2do lugar $2,000.</strong></p>
+      <div id="bracketOro" class="bracket"></div>
+
+      <h3 class="section-title">🥇 LIGUILLA ORO · Final</h3>
+      <div id="finalOro"></div>
+    </div>
+
+    <div class="plata-zone">
+      <h3 class="section-title plata">🥈 LIGUILLA PLATA · Semifinales</h3>
+      <p class="legend" style="margin:0 0 12px;text-align:left">5° vs 8° &nbsp;·&nbsp; 6° vs 7°. Los ganadores juegan la Final PLATA. <strong>Esta liguilla es solo por jugar, no tiene premio económico.</strong></p>
+      <div id="bracketPlata" class="bracket"></div>
+
+      <h3 class="section-title plata">🥈 LIGUILLA PLATA · Final</h3>
+      <div id="finalPlata"></div>
+    </div>
   </section>
 </main>
 
@@ -212,13 +255,26 @@
 // CONFIGURACIÓN MÍNIMA
 const SHEET_ID = "1EBiMSjrKrqI0zCrbc3XDc901jVCcSO8EO9jfjk4bTiU";
 const PARTIDOS_GID = "402566664"; // pestaña Partidos
-const LIGUILLA_GID = "837279737"; // pestaña Liguilla
+const LIGUILLA_GID = "837279737"; // pestaña Liguilla ORO (la que ya tenías)
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${PARTIDOS_GID}`;
 const LIGUILLA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${LIGUILLA_GID}`;
 const GOLEO_GID = "1263143535"; // pestaña Goleo
 const GOLEO_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GOLEO_GID}`;
 
-let DATA = { partidos: [], equipos: [], goleo: [], liguilla: { sf1:{gl:null,gv:null}, sf2:{gl:null,gv:null}, final:{gl:null,gv:null} } };
+// ▼▼▼ PEGA AQUÍ EL GID DE LA NUEVA PESTAÑA "Liguilla Plata" ▼▼▼
+// (sustituye PEGA_AQUI_GID_PLATA por el número del gid que verás en la URL de la pestaña nueva)
+const LIGUILLA_PLATA_GID = "1072725470"; // pestaña Liguilla PLATA
+const LIGUILLA_PLATA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${LIGUILLA_PLATA_GID}`;
+
+// Jornadas que NO se jugarán (se pasa directo a liguilla). Se ocultan del calendario.
+// Si en el futuro quieres mostrarlas otra vez, deja la lista vacía:  const JORNADAS_OCULTAS = [];
+const JORNADAS_OCULTAS = [6, 7];
+
+let DATA = {
+  partidos: [], equipos: [], goleo: [],
+  liguilla:      { sf1:{gl:null,gv:null,ganador:null}, sf2:{gl:null,gv:null,ganador:null}, final:{gl:null,gv:null,ganador:null} },
+  liguillaPlata: { sf1:{gl:null,gv:null,ganador:null}, sf2:{gl:null,gv:null,ganador:null}, final:{gl:null,gv:null,ganador:null} }
+};
 let selectedJornada = null;
 
 function parseCSV(text){
@@ -272,7 +328,14 @@ async function fetchLiguilla(){
   if(!LIGUILLA_GID || LIGUILLA_GID.includes('PEGA_AQUI')){
     throw new Error('Falta configurar el GID de la pestaña Liguilla en el archivo index.html');
   }
-  return fetchCSV(LIGUILLA_URL, 'la pestaña Liguilla');
+  return fetchCSV(LIGUILLA_URL, 'la pestaña Liguilla ORO');
+}
+
+async function fetchLiguillaPlata(){
+  if(!LIGUILLA_PLATA_GID || LIGUILLA_PLATA_GID.includes('PEGA_AQUI')){
+    throw new Error('Falta pegar el GID de la pestaña Liguilla Plata en el archivo index.html');
+  }
+  return fetchCSV(LIGUILLA_PLATA_URL, 'la pestaña Liguilla PLATA');
 }
 
 async function fetchGoleo(){
@@ -451,9 +514,9 @@ function extraerMarcadoresCercanos(rows, baseRow, baseCol){
 
 function parseLiguilla(rows){
   const out = {
-    sf1: { gl: null, gv: null },
-    sf2: { gl: null, gv: null },
-    final: { gl: null, gv: null }
+    sf1: { gl: null, gv: null, ganador: null },
+    sf2: { gl: null, gv: null, ganador: null },
+    final: { gl: null, gv: null, ganador: null }
   };
 
   if(!rows || !rows.length) return out;
@@ -474,15 +537,20 @@ function parseLiguilla(rows){
     const cEtapa = header.findIndex(h => h === 'etapa');
     const cGL = header.findIndex(h => h === 'goles local' || h === 'gl' || h === 'marcador local');
     const cGV = header.findIndex(h => h === 'goles visitante' || h === 'gv' || h === 'marcador visitante');
+    const cGanador = header.findIndex(h => h === 'ganador' || h === 'avanza' || h === 'gana en penales' || h === 'penales' || h === 'ganador penales');
 
     for(let i = headerIdx + 1; i < rows.length; i++){
       const r = rows[i] || [];
       const etapaKey = detectarEtapaLiguilla(r[cEtapa]);
       if(!etapaKey) continue;
 
-      let marcadores = { gl: null, gv: null };
+      let marcadores = { gl: null, gv: null, ganador: null };
       if(cGL >= 0) marcadores.gl = parseGoles(r[cGL]);
       if(cGV >= 0) marcadores.gv = parseGoles(r[cGV]);
+      if(cGanador >= 0){
+        const g = String(r[cGanador] || '').trim();
+        marcadores.ganador = g || null;
+      }
 
       if(marcadores.gl === null || marcadores.gv === null){
         const desdeFila = extraerMarcadoresDesdeFila(r, Math.max(cEtapa + 1, 0));
@@ -588,11 +656,20 @@ function renderCalendario(){
   tabsEl.innerHTML = '';
   contEl.innerHTML = '';
 
-  const jornadas = [...new Set(DATA.partidos.map(p => p.jornada))].sort((a,b) => a-b);
+  const jornadas = [...new Set(DATA.partidos.map(p => p.jornada))]
+    .filter(j => !JORNADAS_OCULTAS.includes(j))
+    .sort((a,b) => a-b);
   if(!jornadas.length){
     selectedJornada = null;
     contEl.innerHTML = '<div class="alert info">No encontré partidos en la pestaña Partidos.</div>';
     return;
+  }
+
+  if(JORNADAS_OCULTAS.length){
+    const aviso = document.createElement('div');
+    aviso.className = 'alert info';
+    aviso.innerHTML = '⚠️ Las jornadas ' + JORNADAS_OCULTAS.join(' y ') + ' no se jugarán. El torneo pasa directo a la <strong>Liguilla ORO y PLATA</strong> (revisa la pestaña <strong>Liguilla</strong>).';
+    contEl.appendChild(aviso);
   }
 
   let activeJor = selectedJornada;
@@ -666,6 +743,7 @@ function renderTabla(){
   tabla.forEach((t, i) => {
     const tr = document.createElement('tr');
     if(i < 4) tr.classList.add('classifies');
+    else if(i < 8) tr.classList.add('classifies-plata');
     tr.innerHTML = `
       <td class="pos">${i + 1}</td>
       <td class="team-col">${escapeHtml(t.equipo)}</td>
@@ -728,16 +806,36 @@ function ganador(local, visitante, gl, gv){
   return 'empate';
 }
 
+// Igual que ganador(), pero si hubo empate y se capturó un ganador manual
+// (definido por penales en la columna "Ganador" del sheet), lo respeta.
+function resolverGanador(local, visitante, gl, gv, manual){
+  if(gl === null || gv === null) return null;
+  if(gl > gv) return local;
+  if(gv > gl) return visitante;
+  if(manual){
+    const m = normalizarTexto(manual);
+    if(m && m === normalizarTexto(local)) return local;
+    if(m && m === normalizarTexto(visitante)) return visitante;
+  }
+  return 'empate';
+}
+
 function renderBracketCard(titulo, p, sub){
   const div = document.createElement('div');
   div.className = 'bracket-card';
   const played = p.gl !== null && p.gv !== null;
-  const wL = played && p.gl > p.gv;
-  const wV = played && p.gv > p.gl;
   const emp = played && p.gl === p.gv;
+  const win = resolverGanador(p.local, p.visitante, p.gl, p.gv, p.ganadorManual);
+  const tieneGanador = win && win !== 'empate';
+  const wL = tieneGanador && normalizarTexto(win) === normalizarTexto(p.local);
+  const wV = tieneGanador && normalizarTexto(win) === normalizarTexto(p.visitante);
+
   let statusLine = '<strong>Pendiente de jugar</strong>';
-  if(played && emp) statusLine = '<strong>Empate — se define por penales</strong>';
-  else if(played) statusLine = '<strong>Ganador: ' + escapeHtml(wL ? p.local : p.visitante) + '</strong>';
+  if(played && tieneGanador){
+    statusLine = '<strong>' + (emp ? 'Ganó en penales: ' : 'Ganador: ') + escapeHtml(win) + '</strong>';
+  } else if(played && emp){
+    statusLine = '<strong>Empate — se define por penales</strong>';
+  }
 
   div.innerHTML = `
     <h4>${titulo}</h4>
@@ -754,20 +852,27 @@ function renderBracketCard(titulo, p, sub){
   return div;
 }
 
-function renderFinalCard(localObj, visitObj, campeon){
+function renderFinalCard(localObj, visitObj, campeon, opts){
+  opts = opts || {};
+  const titulo = opts.titulo || '🏆 GRAN FINAL';
+  const etiqueta = opts.etiquetaCampeon || 'CAMPEÓN';
   const div = document.createElement('div');
   div.className = 'final-card';
   const played = localObj.goles !== null && visitObj.goles !== null;
-  const localWin = played && localObj.goles > visitObj.goles;
-  const visitWin = played && visitObj.goles > localObj.goles;
   const empate = played && localObj.goles === visitObj.goles;
 
+  const ganadorNombre = (campeon && campeon !== 'empate') ? campeon : null;
+  const localWin = ganadorNombre ? normalizarTexto(ganadorNombre) === normalizarTexto(localObj.nombre)
+                                 : (played && localObj.goles > visitObj.goles);
+  const visitWin = ganadorNombre ? normalizarTexto(ganadorNombre) === normalizarTexto(visitObj.nombre)
+                                 : (played && visitObj.goles > localObj.goles);
+
   let campeonTxt = 'Por definir';
-  if(campeon && campeon !== 'empate') campeonTxt = campeon;
-  if(empate) campeonTxt = 'Empate — se define por penales';
+  if(ganadorNombre) campeonTxt = ganadorNombre + (empate ? ' (penales)' : '');
+  else if(empate) campeonTxt = 'Empate — se define por penales';
 
   div.innerHTML = `
-    <h4>🏆 GRAN FINAL</h4>
+    <h4>${titulo}</h4>
     <div class="final-teams">
       <div class="team-block ${localWin?'champion':''}">
         <div class="nm">${escapeHtml(localObj.nombre)}</div>
@@ -780,7 +885,7 @@ function renderFinalCard(localObj, visitObj, campeon){
       </div>
     </div>
     <div class="champion-banner">
-      <div class="label">CAMPEÓN CLAUSURA 2026</div>
+      <div class="label">${escapeHtml(etiqueta)}</div>
       <div class="name">${escapeHtml(campeonTxt)}</div>
     </div>
   `;
@@ -789,31 +894,79 @@ function renderFinalCard(localObj, visitObj, campeon){
 
 function renderLiguilla(){
   const tabla = calcularTabla();
-  const cont = document.getElementById('bracketContainer');
-  const finalCont = document.getElementById('finalContainer');
+  renderLiguillaOro(tabla);
+  renderLiguillaPlata(tabla);
+}
+
+function renderLiguillaOro(tabla){
+  const cont = document.getElementById('bracketOro');
+  const finalCont = document.getElementById('finalOro');
   cont.innerHTML = '';
   finalCont.innerHTML = '';
 
   if(tabla.length < 4){
-    cont.innerHTML = '<div class="alert info">Aún no hay suficientes equipos para definir las semifinales.</div>';
+    cont.innerHTML = '<div class="alert info">Aún no hay suficientes equipos para definir las semifinales ORO.</div>';
     return;
   }
 
-  const sf1 = { local: tabla[0].equipo, visitante: tabla[3].equipo, gl: DATA.liguilla.sf1?.gl ?? null, gv: DATA.liguilla.sf1?.gv ?? null };
-  const sf2 = { local: tabla[1].equipo, visitante: tabla[2].equipo, gl: DATA.liguilla.sf2?.gl ?? null, gv: DATA.liguilla.sf2?.gv ?? null };
+  const L = DATA.liguilla;
+  const sf1 = { local: tabla[0].equipo, visitante: tabla[3].equipo, gl: L.sf1?.gl ?? null, gv: L.sf1?.gv ?? null, ganadorManual: L.sf1?.ganador ?? null };
+  const sf2 = { local: tabla[1].equipo, visitante: tabla[2].equipo, gl: L.sf2?.gl ?? null, gv: L.sf2?.gv ?? null, ganadorManual: L.sf2?.ganador ?? null };
 
-  cont.appendChild(renderBracketCard('Semifinal 1', sf1, '1° vs 4°'));
-  cont.appendChild(renderBracketCard('Semifinal 2', sf2, '2° vs 3°'));
+  cont.appendChild(renderBracketCard('Semifinal 1', sf1, '1° vs 4° · '));
+  cont.appendChild(renderBracketCard('Semifinal 2', sf2, '2° vs 3° · '));
 
-  const winSF1 = ganador(sf1.local, sf1.visitante, sf1.gl, sf1.gv);
-  const winSF2 = ganador(sf2.local, sf2.visitante, sf2.gl, sf2.gv);
+  const winSF1 = resolverGanador(sf1.local, sf1.visitante, sf1.gl, sf1.gv, sf1.ganadorManual);
+  const winSF2 = resolverGanador(sf2.local, sf2.visitante, sf2.gl, sf2.gv, sf2.ganadorManual);
   const finalLocal = (winSF1 && winSF1 !== 'empate') ? winSF1 : 'Por definir';
   const finalVisit = (winSF2 && winSF2 !== 'empate') ? winSF2 : 'Por definir';
-  const finalGL = DATA.liguilla.final?.gl ?? null;
-  const finalGV = DATA.liguilla.final?.gv ?? null;
-  const campeon = ganador(finalLocal, finalVisit, finalGL, finalGV);
+  const finalGL = L.final?.gl ?? null;
+  const finalGV = L.final?.gv ?? null;
+  const finalGanador = L.final?.ganador ?? null;
+  const campeon = resolverGanador(finalLocal, finalVisit, finalGL, finalGV, finalGanador);
 
-  finalCont.appendChild(renderFinalCard({ nombre: finalLocal, goles: finalGL }, { nombre: finalVisit, goles: finalGV }, campeon));
+  finalCont.appendChild(renderFinalCard(
+    { nombre: finalLocal, goles: finalGL },
+    { nombre: finalVisit, goles: finalGV },
+    campeon,
+    { titulo: '🏆 GRAN FINAL ORO', etiquetaCampeon: 'CAMPEÓN ORO · CLAUSURA 2026' }
+  ));
+}
+
+function renderLiguillaPlata(tabla){
+  const cont = document.getElementById('bracketPlata');
+  const finalCont = document.getElementById('finalPlata');
+  if(!cont || !finalCont) return;
+  cont.innerHTML = '';
+  finalCont.innerHTML = '';
+
+  if(tabla.length < 8){
+    cont.innerHTML = '<div class="alert info">La Liguilla PLATA necesita 8 equipos en la tabla (5° a 8°). Aún no están todos.</div>';
+    return;
+  }
+
+  const L = DATA.liguillaPlata;
+  const sf1 = { local: tabla[4].equipo, visitante: tabla[7].equipo, gl: L.sf1?.gl ?? null, gv: L.sf1?.gv ?? null, ganadorManual: L.sf1?.ganador ?? null };
+  const sf2 = { local: tabla[5].equipo, visitante: tabla[6].equipo, gl: L.sf2?.gl ?? null, gv: L.sf2?.gv ?? null, ganadorManual: L.sf2?.ganador ?? null };
+
+  cont.appendChild(renderBracketCard('Semifinal 1', sf1, '5° vs 8° · '));
+  cont.appendChild(renderBracketCard('Semifinal 2', sf2, '6° vs 7° · '));
+
+  const winSF1 = resolverGanador(sf1.local, sf1.visitante, sf1.gl, sf1.gv, sf1.ganadorManual);
+  const winSF2 = resolverGanador(sf2.local, sf2.visitante, sf2.gl, sf2.gv, sf2.ganadorManual);
+  const finalLocal = (winSF1 && winSF1 !== 'empate') ? winSF1 : 'Por definir';
+  const finalVisit = (winSF2 && winSF2 !== 'empate') ? winSF2 : 'Por definir';
+  const finalGL = L.final?.gl ?? null;
+  const finalGV = L.final?.gv ?? null;
+  const finalGanador = L.final?.ganador ?? null;
+  const campeon = resolverGanador(finalLocal, finalVisit, finalGL, finalGV, finalGanador);
+
+  finalCont.appendChild(renderFinalCard(
+    { nombre: finalLocal, goles: finalGL },
+    { nombre: finalVisit, goles: finalGV },
+    campeon,
+    { titulo: '🥈 GRAN FINAL PLATA', etiquetaCampeon: 'CAMPEÓN PLATA · CLAUSURA 2026' }
+  ));
 }
 
 function mostrarError(msg){
@@ -821,8 +974,10 @@ function mostrarError(msg){
   document.getElementById('jornadasContainer').innerHTML = html;
   document.getElementById('standingsBody').innerHTML = `<tr><td colspan="10" style="padding:24px">${html}</td></tr>`;
   document.getElementById('updateInfo').textContent = 'Error de conexión con Google Sheets';
-  const bc = document.getElementById('bracketContainer'); if(bc) bc.innerHTML = html;
-  const fc = document.getElementById('finalContainer'); if(fc) fc.innerHTML = '';
+  const bo = document.getElementById('bracketOro'); if(bo) bo.innerHTML = html;
+  const fo = document.getElementById('finalOro'); if(fo) fo.innerHTML = '';
+  const bp = document.getElementById('bracketPlata'); if(bp) bp.innerHTML = html;
+  const fp = document.getElementById('finalPlata'); if(fp) fp.innerHTML = '';
   const gb = document.getElementById('goleoBody'); if(gb) gb.innerHTML = `<tr><td colspan="4" style="padding:24px">${html}</td></tr>`;
   const gl = document.getElementById('goleoLeader'); if(gl) gl.innerHTML = '';
 }
@@ -851,23 +1006,35 @@ async function cargarDatos(){
       }
     }
 
-    let liguillaStatus = 'Liguilla conectada';
+    let liguillaStatus = 'Liguilla ORO conectada';
     try{
       const rowsLiguilla = await fetchLiguilla();
       DATA.liguilla = parseLiguilla(rowsLiguilla);
       const encontroAlgo = [DATA.liguilla.sf1, DATA.liguilla.sf2, DATA.liguilla.final].some(x => x.gl !== null || x.gv !== null);
-      if(!encontroAlgo) liguillaStatus = 'Liguilla conectada, pero no reconocí aún los marcadores';
+      if(!encontroAlgo) liguillaStatus = 'Liguilla ORO conectada, pero no reconocí aún los marcadores';
     }catch(errLiguilla){
-      DATA.liguilla = { sf1:{gl:null,gv:null}, sf2:{gl:null,gv:null}, final:{gl:null,gv:null} };
-      liguillaStatus = 'Liguilla no leída: ' + (errLiguilla.message || 'error');
+      DATA.liguilla = { sf1:{gl:null,gv:null,ganador:null}, sf2:{gl:null,gv:null,ganador:null}, final:{gl:null,gv:null,ganador:null} };
+      liguillaStatus = 'Liguilla ORO no leída: ' + (errLiguilla.message || 'error');
       console.warn(errLiguilla);
+    }
+
+    let plataStatus = 'Liguilla PLATA conectada';
+    try{
+      const rowsPlata = await fetchLiguillaPlata();
+      DATA.liguillaPlata = parseLiguilla(rowsPlata);
+      const encontroAlgo = [DATA.liguillaPlata.sf1, DATA.liguillaPlata.sf2, DATA.liguillaPlata.final].some(x => x.gl !== null || x.gv !== null);
+      if(!encontroAlgo) plataStatus = 'Liguilla PLATA conectada, pero no reconocí aún los marcadores';
+    }catch(errPlata){
+      DATA.liguillaPlata = { sf1:{gl:null,gv:null,ganador:null}, sf2:{gl:null,gv:null,ganador:null}, final:{gl:null,gv:null,ganador:null} };
+      plataStatus = 'Liguilla PLATA no leída: ' + (errPlata.message || 'error');
+      console.warn(errPlata);
     }
 
     renderCalendario();
     renderTabla();
     renderGoleo();
     renderLiguilla();
-    document.getElementById('updateInfo').textContent = `Datos actualizados: ${new Date().toLocaleString('es-MX')} · Partidos cargados: ${DATA.partidos.length} · ${goleoStatus} · ${liguillaStatus}`;
+    document.getElementById('updateInfo').textContent = `Datos actualizados: ${new Date().toLocaleString('es-MX')} · Partidos cargados: ${DATA.partidos.length} · ${goleoStatus} · ${liguillaStatus} · ${plataStatus}`;
   }catch(err){
     console.error(err);
     mostrarError(err.message || 'Error desconocido');
